@@ -13,6 +13,16 @@
   <artifactId>trace-reporter</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
+  <name>ScaleCube Trace Reporter</name>
+
+  <scm>
+    <url>https://github.com/scalecube/trace-reporter</url>
+    <connection>scm:git:git@github.com:scalecube/trace-reporter.git</connection>
+    <developerConnection>scm:git:git@github.com:scalecube/trace-reporter.git
+    </developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+  
   <properties>
     <hdrhistogram.version>2.1.10</hdrhistogram.version>
     <jackson.version>2.9.8</jackson.version>

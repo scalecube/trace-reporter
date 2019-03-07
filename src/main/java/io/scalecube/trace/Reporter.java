@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,9 +31,7 @@ public class Reporter {
     return mapper;
   }
 
-  /**
-   * create reporter.
-   */
+  /** create reporter. */
   public Reporter() {
     try {
       mapper = initMapper();
@@ -51,10 +49,29 @@ public class Reporter {
     return histogram.getMean() / outputValueUnitScalingRatio;
   }
 
+  /**
+   * Dump the trace state in to a file. the file is overwritten every time this method is called.
+   *
+   * @param fullName path and file name of the file.
+   * @param trace data to store to file.
+   * @throws IOException on file errors.
+   */
   public void dumpToFile(String fullName, TraceData trace) throws IOException {
     OutputStream out = new FileOutputStream(fullName);
     dump(out, trace);
     out.close();
-    
+  }
+
+  /**
+   * Dump the trace state in to a file. the file is overwritten every time this method is called.
+   *
+   * @param folder path and file name of the file.
+   * @param file path and file name of the file.
+   * @param trace data to store to file.
+   * @throws IOException on file errors.
+   */
+  public void dumpToFile(String folder, String file, TraceData trace) throws IOException {
+    new File(folder).mkdir();
+    dumpToFile(folder + file, trace);
   }
 }
