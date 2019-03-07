@@ -49,12 +49,27 @@ public class Reporter {
     return histogram.getMean() / outputValueUnitScalingRatio;
   }
 
+  /**
+   * Dump the trace state in to a file. the file is overwritten every time this method is called.
+   *
+   * @param fullName path and file name of the file.
+   * @param trace data to store to file.
+   * @throws IOException on file errors.
+   */
   public void dumpToFile(String fullName, TraceData trace) throws IOException {
     OutputStream out = new FileOutputStream(fullName);
     dump(out, trace);
     out.close();
   }
 
+  /**
+   * Dump the trace state in to a file. the file is overwritten every time this method is called.
+   *
+   * @param folder path and file name of the file.
+   * @param file path and file name of the file.
+   * @param trace data to store to file.
+   * @throws IOException on file errors.
+   */
   public void dumpToFile(String folder, String file, TraceData trace) throws IOException {
     new File(folder).mkdir();
     dumpToFile(folder + file, trace);
