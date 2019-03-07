@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.scalecube</groupId>
+    <artifactId>scalecube-parent-pom</artifactId>
+    <version>0.0.19</version>
+  </parent>
+
+  <artifactId>trace-reporter</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <hdrhistogram.version>2.1.10</hdrhistogram.version>
+    <jackson.version>2.9.8</jackson.version>
+  </properties>
+
+  <dependencies>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hdrhistogram</groupId>
+      <artifactId>HdrHistogram</artifactId>
+      <version>${hdrhistogram.version}</version>
+    </dependency>
+
+  </dependencies>
+</project>
