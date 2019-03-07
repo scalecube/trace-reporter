@@ -39,5 +39,7 @@ public class Demo {
     
     r.dumpToFile(folder + "out-2.json",trace);
     
+    r.dumpToFile(folder , "out-2.json", trace);
+    
   }
 }

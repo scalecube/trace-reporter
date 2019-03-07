@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,9 +31,7 @@ public class Reporter {
     return mapper;
   }
 
-  /**
-   * create reporter.
-   */
+  /** create reporter. */
   public Reporter() {
     try {
       mapper = initMapper();
@@ -55,6 +53,10 @@ public class Reporter {
     OutputStream out = new FileOutputStream(fullName);
     dump(out, trace);
     out.close();
-    
+  }
+
+  public void dumpToFile(String folder, String file, TraceData trace) throws IOException {
+    new File(folder).mkdir();
+    dumpToFile(folder + file, trace);
   }
 }
