@@ -30,11 +30,12 @@ public class Demo {
     out.close();
 
     trace.xaxis().add(1d);
-    trace.xaxis().add(2d);
-    trace.xaxis().add(3d);
-
     trace.yaxis().add(31d);
+    
+    trace.xaxis().add(2d);
     trace.yaxis().add(13d);
+    
+    trace.xaxis().add(3d);
     trace.yaxis().add(12d);
     
     r.dumpToFile(folder + "out-2.json",trace);
