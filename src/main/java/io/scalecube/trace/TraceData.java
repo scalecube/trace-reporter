@@ -4,16 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TraceData {
+public class TraceData<X,Y> {
 
   String name;
   LineColor line;
   
   @JsonProperty("x")
-  List<Double> xaxis = new ArrayList<>();
+  List<X> xaxis = new ArrayList<>();
   
   @JsonProperty("y")
-  List<Double> yaxis = new ArrayList<>();
+  List<Y> yaxis = new ArrayList<>();
   String type = "scatter";
 
   public TraceData(String name) {
@@ -25,11 +25,11 @@ public class TraceData {
     this.line = new LineColor(color);
   }
 
-  public List<Double> yaxis() {
+  public List<Y> yaxis() {
     return yaxis;
   }
 
-  public List<Double> xaxis() {
+  public List<X> xaxis() {
     return xaxis;
   }
 }
