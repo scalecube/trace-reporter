@@ -57,7 +57,7 @@ public class Reporter {
    * @throws IOException on file errors.
    */
   public void dumpToFile(String fullName, TraceData trace) throws IOException {
-    try(OutputStream out = new FileOutputStream(fullName)){
+    try (OutputStream out = new FileOutputStream(fullName)) {
       dump(out, trace);
       out.close();
     }
