@@ -153,7 +153,7 @@ public class TraceReporter {
   }
 
   /**
-   * get or create x axis long adder
+   * get or create x axis long adder.
    *
    * @param name of the trace.
    * @return LongAdder of the trace.
@@ -163,7 +163,7 @@ public class TraceReporter {
   }
 
   /**
-   * get or create y axis long adder
+   * get or create y axis long adder.
    *
    * @param name of the trace.
    * @return LongAdder of the trace.
