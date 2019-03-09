@@ -22,7 +22,6 @@
   </scm>
   
   <properties>
-    <hdrhistogram.version>2.1.10</hdrhistogram.version>
     <jackson.version>2.9.8</jackson.version>
   </properties>
 
@@ -33,12 +32,5 @@
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.hdrhistogram</groupId>
-      <artifactId>HdrHistogram</artifactId>
-      <version>${hdrhistogram.version}</version>
-    </dependency>
-
   </dependencies>
 </project>

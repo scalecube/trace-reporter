@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.LongAdder;
-import org.HdrHistogram.Histogram;
 
 public class TraceReporter {
 
@@ -28,7 +27,7 @@ public class TraceReporter {
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
-  
+
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -50,32 +49,38 @@ public class TraceReporter {
     }
   }
 
+  /**
+   * get or create a trace line with a given name.
+   *
+   * @param name of the trace.
+   * @return TraceData with a given name.
+   */
   public <X, Y> TraceData<X, Y> trace(String name) {
     return (TraceData<X, Y>) traces.computeIfAbsent(name, c -> new TraceData<>(c));
   }
 
-  public LongAdder xadder(String name) {
-    return xadder.computeIfAbsent(name, c -> new LongAdder());
-  }
-  
-  public LongAdder yadder(String name) {
-    return yadder.computeIfAbsent(name, c -> new LongAdder());
-  }
-  
+  /**
+   * add sample value on X axis y axis s auto incremented by 1
+   *
+   * @param name of trace
+   * @param value to add.
+   */
   public <X> void addY(String name, X value) {
     xadder(name).increment();
     trace(name).xaxis().add(xadder(name).longValue());
     trace(name).yaxis().add(value);
   }
 
+  /**
+   * add sample value on Y axis y axis s auto incremented by 1
+   *
+   * @param name of trace
+   * @param value to add.
+   */
   public <Y> void addX(String name, Y value) {
     yadder(name).increment();
     trace(name).yaxis().add(yadder(name).longValue());
     trace(name).xaxis().add(value);
-  }
-  
-  public double mean(Histogram histogram) {
-    return histogram.getMean() / outputValueUnitScalingRatio;
   }
 
   /**
@@ -105,7 +110,7 @@ public class TraceReporter {
     new File(folder).mkdir();
     return dumpToFile(folder + file, trace);
   }
-  
+
   public CompletableFuture<Void> dumpTo(OutputStream output, TraceData trace) {
     return CompletableFuture.runAsync(
         () -> {
@@ -118,7 +123,7 @@ public class TraceReporter {
           }
         });
   }
-  
+
   /**
    * Dump traces state in to a file. the file is overwritten every time this method is called. a
    * file in folder will be created for each trace in the given name of the trace when created.
@@ -138,5 +143,25 @@ public class TraceReporter {
           }
         });
     return future.allOf(list.toArray(new CompletableFuture[list.size()]));
+  }
+
+  /**
+   * get or create x axis long adder
+   *
+   * @param name of the trace.
+   * @return LongAdder of the trace.
+   */
+  private LongAdder xadder(String name) {
+    return xadder.computeIfAbsent(name, c -> new LongAdder());
+  }
+
+  /**
+   * get or create y axis long adder
+   *
+   * @param name of the trace.
+   * @return LongAdder of the trace.
+   */
+  private LongAdder yadder(String name) {
+    return yadder.computeIfAbsent(name, c -> new LongAdder());
   }
 }
