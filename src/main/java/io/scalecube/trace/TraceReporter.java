@@ -60,7 +60,7 @@ public class TraceReporter {
   }
 
   /**
-   * add sample value on X axis y axis s auto incremented by 1
+   * add sample value on X axis y axis s auto incremented by 1.
    *
    * @param name of trace
    * @param value to add.
@@ -72,7 +72,7 @@ public class TraceReporter {
   }
 
   /**
-   * add sample value on Y axis y axis s auto incremented by 1
+   * add sample value on Y axis y axis s auto incremented by 1.
    *
    * @param name of trace
    * @param value to add.
@@ -88,7 +88,7 @@ public class TraceReporter {
    *
    * @param fullName path and file name of the file.
    * @param trace data to store to file.
-   * @return
+   * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
   public CompletableFuture<Void> dumpToFile(String fullName, TraceData trace) throws IOException {
@@ -102,7 +102,7 @@ public class TraceReporter {
    * @param folder path and file name of the file.
    * @param file path and file name of the file.
    * @param trace data to store to file.
-   * @return
+   * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
   public CompletableFuture<Void> dumpToFile(String folder, String file, TraceData trace)
@@ -111,6 +111,13 @@ public class TraceReporter {
     return dumpToFile(folder + file, trace);
   }
 
+  /**
+   * dump trace data to output stream.
+   *
+   * @param output stream to dump to.
+   * @param trace data to dump.
+   * @return CompletableFuture when done.
+   */
   public CompletableFuture<Void> dumpTo(OutputStream output, TraceData trace) {
     return CompletableFuture.runAsync(
         () -> {
@@ -129,7 +136,7 @@ public class TraceReporter {
    * file in folder will be created for each trace in the given name of the trace when created.
    *
    * @param folder path and file name of the file .
-   * @return
+   * @return CompletableFuture of future result.
    */
   public CompletableFuture<Void> dumpTo(String folder) {
     CompletableFuture<Void> future = new CompletableFuture<>();
