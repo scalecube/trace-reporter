@@ -11,19 +11,24 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
 public class TraceReporter {
 
   static ObjectMapper mapper;
   static JsonGenerator generator;
-  double outputValueUnitScalingRatio = 1000;
 
+  private final ScheduledExecutorService scheduler;
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
@@ -42,6 +47,7 @@ public class TraceReporter {
 
   /** create reporter. */
   public TraceReporter() {
+    scheduler = Executors.newScheduledThreadPool(1);
     try {
       mapper = initMapper();
     } catch (Exception ex) {
@@ -150,6 +156,18 @@ public class TraceReporter {
           }
         });
     return future.allOf(list.toArray(new CompletableFuture[list.size()]));
+  }
+
+  /**
+   * Schedule periodic dump to folder.
+   *
+   * @param duration periodic dump duration.
+   * @param folder target where .json files are created.
+   * @return ScheduledFuture of the scheduler
+   */
+  public ScheduledFuture<?> scheduleDumpTo(Duration duration, String folder) {
+    return scheduler.scheduleAtFixedRate(
+        () -> dumpTo(folder), duration.toMillis(), duration.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   /**
