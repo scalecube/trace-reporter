@@ -33,7 +33,7 @@ public class TraceReporter {
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
 
-  private static ObjectMapper initMapper() {
+  public static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
