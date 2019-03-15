@@ -42,6 +42,13 @@
       <version>5.5.5</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/io.projectreactor/reactor-core -->
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.2.6.RELEASE</version>
+    </dependency>
+
 
   </dependencies>
 </project>

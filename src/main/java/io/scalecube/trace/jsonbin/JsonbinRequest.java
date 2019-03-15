@@ -10,14 +10,20 @@ public class JsonbinRequest<T> {
 
   private Object body;
 
-  private Class<?> responseType;
+  private Class<T> responseType;
 
-  private JsonbinRequest(Builder builder) {
+  private boolean versioning;
+
+  private boolean isPrivate;
+  
+  private JsonbinRequest(Builder<T> builder) {
     this.secret = builder.secret;
     this.collectionId = builder.collectionId;
     this.body = builder.body;
     this.responseType = builder.responseType;
     this.url = builder.url;
+    this.versioning = builder.versioning ;
+    this.isPrivate = builder.isPrivate;
   }
   
   public String secret() {
@@ -40,39 +46,59 @@ public class JsonbinRequest<T> {
     return responseType;
   }
 
-  public static class Builder {
+  public boolean versioning() {
+    return versioning;
+  }
+  
+  public boolean isPrivate() {
+    return isPrivate;
+  }
+  
+  public static class Builder<T> {
 
+    public boolean isPrivate = false;
+    public boolean versioning = false;
     public Object body;
     public String secret;
     private String url;
-    private Class<?> responseType;
+    private Class<T> responseType;
     private String collectionId;
 
-    public Builder url(String url) {
+    public Builder<T> url(String url) {
       this.url = url;
       return this;
     }
 
-    public Builder responseType(Class<?> responseType) {
+    public Builder<T> responseType(Class<T> responseType) {
       this.responseType = responseType;
       return this;
     }
 
-    public JsonbinRequest<?> build() {
-      return new JsonbinRequest<>(this);
+    public JsonbinRequest<T> build() {
+      return new JsonbinRequest<T>(this);
     }
 
-    public Builder body(Object body) {
+    public Builder<T> versioning(boolean versioning) {
+      this.versioning = versioning;
+      return this;
+    }
+    
+    public Builder<T> isPrivate(boolean isPrivate) {
+      this.isPrivate = isPrivate;
+      return this;
+    }
+    
+    public Builder<T> body(T body) {
       this.body = body;
       return this;
     }
 
-    public Builder secret(String secret) {
+    public Builder<T> secret(String secret) {
       this.secret = secret;
       return this;
     }
 
-    public Builder collection(String collectionId) {
+    public Builder<T> collection(String collectionId) {
       this.collectionId = collectionId;
       return this;
     }

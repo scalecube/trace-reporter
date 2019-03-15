@@ -7,14 +7,16 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.scalecube.trace.jsonbin.JsonbinClient;
+import io.scalecube.trace.jsonbin.JsonbinRequest;
+import io.scalecube.trace.jsonbin.JsonbinRequest.Builder;
+import io.scalecube.trace.jsonbin.JsonbinResponse;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -22,6 +24,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public class TraceReporter {
 
@@ -93,13 +97,16 @@ public class TraceReporter {
    * Dump the trace state in to a file. the file is overwritten every time this method is called.
    *
    * @param fullName path and file name of the file.
-   * @param trace data to store to file.
+   * @param json data to store to file.
    * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
-  public CompletableFuture<Void> dumpToFile(String fullName, TraceData trace) throws IOException {
-    OutputStream out = new FileOutputStream(fullName);
-    return dumpTo(out, trace);
+  public Mono<Void> dumpToFile(String fullName, Object json) {
+    try {
+      return dumpTo(new FileOutputStream(fullName), json);
+    } catch (FileNotFoundException e) {
+      return Mono.error(e);
+    }
   }
 
   /**
@@ -107,32 +114,32 @@ public class TraceReporter {
    *
    * @param folder path and file name of the file.
    * @param file path and file name of the file.
-   * @param trace data to store to file.
+   * @param json data to store to file.
    * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
-  public CompletableFuture<Void> dumpToFile(String folder, String file, TraceData trace)
-      throws IOException {
+  public Mono<Void> dumpToFile(String folder, String file, Object json) {
     new File(folder).mkdir();
-    return dumpToFile(folder + file, trace);
+    return dumpToFile(folder + file, json);
   }
 
   /**
    * dump trace data to output stream.
    *
    * @param output stream to dump to.
-   * @param trace data to dump.
-   * @return CompletableFuture when done.
+   * @param json data to dump.
+   * @return Mono when done.
    */
-  public CompletableFuture<Void> dumpTo(OutputStream output, TraceData trace) {
-    return CompletableFuture.runAsync(
-        () -> {
+  public Mono<Void> dumpTo(OutputStream output, Object json) {
+    return Mono.create(
+        sink -> {
           try {
             generator = mapper.getFactory().createGenerator(output);
-            generator.writeObject(trace);
+            generator.writeObject(json);
             output.close();
+            sink.success();
           } catch (IOException e) {
-            throw new IllegalStateException(e);
+            sink.error(e);
           }
         });
   }
@@ -142,22 +149,52 @@ public class TraceReporter {
    * file in folder will be created for each trace in the given name of the trace when created.
    *
    * @param folder path and file name of the file .
-   * @return CompletableFuture of future result.
+   * @return Mono of future result.
    */
-  public CompletableFuture<Void> dumpTo(String folder) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    List<CompletableFuture<Void>> list = new ArrayList<>();
-    traces.forEach(
-        (key, value) -> {
-          try {
-            list.add(dumpToFile(folder, key, value));
-          } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-          }
-        });
-    return future.allOf(list.toArray(new CompletableFuture[list.size()]));
+  public Mono<Void> dumpTo(String folder) {
+    return Flux.fromStream(traces.entrySet().stream())
+        .flatMap(m -> dumpToFile(folder, m.getKey(), m.getValue()))
+        .then();
   }
 
+  public Flux<JsonbinResponse> sendToJsonbin(){
+    return sendToJsonbin(null, null);
+  }
+  
+  public Mono<JsonbinResponse> sendToJsonbin(Object data){
+    return sendToJsonbin(null, null,data);
+  }
+  
+  public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
+    JsonbinClient client = new JsonbinClient(mapper);
+
+    Builder b =
+        JsonbinRequest.builder()
+            .url("https://api.jsonbin.io/b")
+            .responseType(JsonbinResponse.class);
+
+    if (secret != null) b.secret(secret);
+    if (collectionId != null) b.collection(collectionId);
+
+    return Flux.fromStream(traces.values().stream())
+        .flatMap((value) -> client.post(b.body(value).build()));
+  }
+
+  public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
+    
+    JsonbinClient client = new JsonbinClient(mapper);
+
+    Builder b =
+        JsonbinRequest.builder()
+            .url("https://api.jsonbin.io/b")
+            .responseType(JsonbinResponse.class);
+
+    if (secret != null) b.secret(secret);
+    if (collectionId != null) b.collection(collectionId);
+
+    return client.post(b.body(body).build());
+  }
+  
   /**
    * Schedule periodic dump to folder.
    *

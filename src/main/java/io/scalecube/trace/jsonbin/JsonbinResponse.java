@@ -1,13 +1,11 @@
 package io.scalecube.trace.jsonbin;
 
-import io.scalecube.trace.TraceData;
-
-public class JsonbinResponse {
+public class JsonbinResponse<T> {
 
   private String id;
   private boolean success;
   private String message;
-  private TraceData data;
+  private T data;
 
   public String id() {
     return id;
@@ -17,7 +15,7 @@ public class JsonbinResponse {
     return success;
   }
 
-  public TraceData data() {
+  public T data() {
     return data;
   }
   
