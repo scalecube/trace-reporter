@@ -1,0 +1,23 @@
+
+  {
+    "layout": {
+      "title": "a chart title",
+      "xaxis": {
+        "title": "x-axis title",
+        "titlefont": {
+          "family": "Courier New, monospace",
+          "size": 12,
+          "color": "#7f7f7f"
+        }
+      },
+      "yaxis" : {
+        "title": "y-axis title",
+        "titlefont": {
+          "family": "Courier New, monospace",
+          "size": 12,
+          "color": "#7f7f7f"
+        }
+      }
+    },
+    "traces": ["AUTO_GENERATED"]
+  }

@@ -24,7 +24,15 @@ public class Demo {
     r.addX("reactor-aeron", 30);
 
     r.scheduleDumpTo(Duration.ofMinutes(1), folder);
-
+    
+    r.sendToJsonbin()
+        .subscribe(
+            res -> {
+              if (res.success()) {
+                r.dumpToFile(folder, res.id(), res).subscribe();
+              }
+            });
+    
     Thread.currentThread().join();
   }
 }

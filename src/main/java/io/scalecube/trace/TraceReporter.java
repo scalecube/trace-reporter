@@ -5,16 +5,21 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.scalecube.trace.jsonbin.JsonbinClient;
+import io.scalecube.trace.jsonbin.JsonbinRequest;
+import io.scalecube.trace.jsonbin.JsonbinRequest.Builder;
+import io.scalecube.trace.jsonbin.JsonbinResponse;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -22,11 +27,18 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public class TraceReporter {
 
   static ObjectMapper mapper;
   static JsonGenerator generator;
+  private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b/";
+
+  private static String DEFAULT_TRACES_FOLDER = "./target/traces/";
+  private static String DEFAULT_CHARTS_FOLDER = "./target/charts/";
+  private static String template = "./src/main/resources/chart_template.json";
 
   private final ScheduledExecutorService scheduler;
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
@@ -43,6 +55,18 @@ public class TraceReporter {
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     return mapper;
+  }
+
+  public String tracesEnv() {
+    return getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
+  }
+
+  public String chartsEnv() {
+    return getenvOrDefault("CHARTS_FOLDER", DEFAULT_CHARTS_FOLDER);
+  }
+
+  public String teplateFileEnv() {
+    return getenvOrDefault("CHART_TEMPLATE", template);
   }
 
   /** create reporter. */
@@ -93,13 +117,16 @@ public class TraceReporter {
    * Dump the trace state in to a file. the file is overwritten every time this method is called.
    *
    * @param fullName path and file name of the file.
-   * @param trace data to store to file.
+   * @param json data to store to file.
    * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
-  public CompletableFuture<Void> dumpToFile(String fullName, TraceData trace) throws IOException {
-    OutputStream out = new FileOutputStream(fullName);
-    return dumpTo(out, trace);
+  public Mono<Void> dumpToFile(String fullName, Object json) {
+    try {
+      return dumpTo(new FileOutputStream(fullName), json);
+    } catch (FileNotFoundException e) {
+      return Mono.error(e);
+    }
   }
 
   /**
@@ -107,32 +134,32 @@ public class TraceReporter {
    *
    * @param folder path and file name of the file.
    * @param file path and file name of the file.
-   * @param trace data to store to file.
+   * @param json data to store to file.
    * @return CompletableFuture of future result.
    * @throws IOException on file errors.
    */
-  public CompletableFuture<Void> dumpToFile(String folder, String file, TraceData trace)
-      throws IOException {
+  public Mono<Void> dumpToFile(String folder, String file, Object json) {
     new File(folder).mkdir();
-    return dumpToFile(folder + file, trace);
+    return dumpToFile(folder + file, json);
   }
 
   /**
    * dump trace data to output stream.
    *
    * @param output stream to dump to.
-   * @param trace data to dump.
-   * @return CompletableFuture when done.
+   * @param json data to dump.
+   * @return Mono when done.
    */
-  public CompletableFuture<Void> dumpTo(OutputStream output, TraceData trace) {
-    return CompletableFuture.runAsync(
-        () -> {
+  public Mono<Void> dumpTo(OutputStream output, Object json) {
+    return Mono.create(
+        sink -> {
           try {
             generator = mapper.getFactory().createGenerator(output);
-            generator.writeObject(trace);
+            generator.writeObject(json);
             output.close();
+            sink.success();
           } catch (IOException e) {
-            throw new IllegalStateException(e);
+            sink.error(e);
           }
         });
   }
@@ -142,20 +169,75 @@ public class TraceReporter {
    * file in folder will be created for each trace in the given name of the trace when created.
    *
    * @param folder path and file name of the file .
-   * @return CompletableFuture of future result.
+   * @return Mono of future result.
    */
-  public CompletableFuture<Void> dumpTo(String folder) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    List<CompletableFuture<Void>> list = new ArrayList<>();
-    traces.forEach(
-        (key, value) -> {
-          try {
-            list.add(dumpToFile(folder, key, value));
-          } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-          }
-        });
-    return future.allOf(list.toArray(new CompletableFuture[list.size()]));
+  public Mono<Void> dumpTo(String folder) {
+    return Flux.fromStream(traces.entrySet().stream())
+        .flatMap(m -> dumpToFile(folder, m.getKey(), m.getValue()))
+        .then();
+  }
+
+  public Flux<JsonbinResponse> sendToJsonbin() {
+    return sendToJsonbin(null, null);
+  }
+
+  public Mono<JsonbinResponse> sendToJsonbin(Object data) {
+    return sendToJsonbin(null, null, data);
+  }
+
+  /**
+   * send all collected data to json bin service.
+   *
+   * @param secret optional nullable.
+   * @param collectionId optional nullable.
+   * @return json bin response.
+   */
+  public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
+    JsonbinClient client = new JsonbinClient(mapper);
+
+    Builder b =
+        JsonbinRequest.builder()
+            .url("https://api.jsonbin.io/b")
+            .responseType(JsonbinResponse.class);
+
+    if (secret != null) {
+      b.secret(secret);
+    }
+
+    if (collectionId != null) {
+      b.collection(collectionId);
+    }
+
+    return Flux.fromStream(traces.values().stream())
+        .flatMap((value) -> client.post(b.body(value).build()));
+  }
+
+  /**
+   * send to jsonbin a given data.
+   *
+   * @param secret optional nullable.
+   * @param collectionId optional nullable.
+   * @param body mandatory.
+   * @return json response bin.
+   */
+  public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
+
+    JsonbinClient client = new JsonbinClient(mapper);
+
+    Builder b =
+        JsonbinRequest.builder()
+            .url("https://api.jsonbin.io/b")
+            .responseType(JsonbinResponse.class);
+
+    if (secret != null) {
+      b.secret(secret);
+    }
+
+    if (collectionId != null) {
+      b.collection(collectionId);
+    }
+
+    return client.post(b.body(body).build());
   }
 
   /**
@@ -188,5 +270,67 @@ public class TraceReporter {
    */
   private LongAdder yadder(String name) {
     return yadder.computeIfAbsent(name, c -> new LongAdder());
+  }
+
+  /**
+   * create a chart report and upload to jsonbin.
+   *
+   * @param tracesFolder where is the data.
+   * @param chartsFolder where chart is created.
+   * @param chartTemplate the basis template of chart.
+   * @return mono void when operation completed.
+   * @throws Exception in error case.
+   */
+  public Mono<Void> createChart(String tracesFolder, String chartsFolder, String chartTemplate)
+      throws Exception {
+
+    return Mono.create(
+        sink -> {
+          File inDir = new File(tracesFolder);
+          File templateFile = new File(chartTemplate);
+
+          if (containsFiles(inDir)) {
+            JsonNode root;
+            try {
+              root = mapper.readTree(templateFile);
+              setTraces(root, inDir.list());
+              sendToJsonbin(root)
+                  .subscribe(
+                      consumer -> {
+                        dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
+                        System.out.println(URL_API_JSONBIN_IO + consumer.id());
+                        sink.success();
+                      });
+            } catch (Exception e) {
+              sink.error(e);
+            }
+          } else {
+            System.out.println("no files are found in" + tracesFolder);
+            sink.error(new Exception());
+          }
+        });
+  }
+
+  private boolean containsFiles(File inDir) {
+    return inDir.list() != null && inDir.list().length > 0;
+  }
+
+  private void setTraces(JsonNode root, String[] listTraces) {
+    ArrayNode traces = mapper.createArrayNode();
+
+    for (String file : listTraces) {
+      traces.add(URL_API_JSONBIN_IO + file);
+    }
+    ((ObjectNode) root).put("traces", traces);
+
+    root.path("traces");
+  }
+  
+  private static String getenvOrDefault(String name, String orDefault) {
+    if (System.getenv(name) != null) {
+      return System.getenv(name);
+    } else {
+      return orDefault;
+    }
   }
 }
