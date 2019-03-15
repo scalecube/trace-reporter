@@ -1,0 +1,23 @@
+
+  {
+    "layout": {
+      "title": "reactor-aeron-latency-mean<br><a href='www.google.com'>xxx</a>",
+      "xaxis": {
+        "title": "data samples over time",
+        "titlefont": {
+          "family": "Courier New, monospace",
+          "size": 12,
+          "color": "#7f7f7f"
+        }
+      },
+      "yaxis" : {
+        "title": "latency microseconds",
+        "titlefont": {
+          "family": "Courier New, monospace",
+          "size": 22,
+          "color": "#7f7f7f"
+        }
+      }
+    },
+    "traces": ["AUTO_GENERATED"]
+  }

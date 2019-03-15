@@ -157,14 +157,14 @@ public class TraceReporter {
         .then();
   }
 
-  public Flux<JsonbinResponse> sendToJsonbin(){
+  public Flux<JsonbinResponse> sendToJsonbin() {
     return sendToJsonbin(null, null);
   }
-  
-  public Mono<JsonbinResponse> sendToJsonbin(Object data){
-    return sendToJsonbin(null, null,data);
+
+  public Mono<JsonbinResponse> sendToJsonbin(Object data) {
+    return sendToJsonbin(null, null, data);
   }
-  
+
   public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
     JsonbinClient client = new JsonbinClient(mapper);
 
@@ -181,7 +181,7 @@ public class TraceReporter {
   }
 
   public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
-    
+
     JsonbinClient client = new JsonbinClient(mapper);
 
     Builder b =
@@ -194,7 +194,7 @@ public class TraceReporter {
 
     return client.post(b.body(body).build());
   }
-  
+
   /**
    * Schedule periodic dump to folder.
    *
