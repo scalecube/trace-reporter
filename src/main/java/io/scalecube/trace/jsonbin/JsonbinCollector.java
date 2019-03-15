@@ -18,7 +18,7 @@ public class JsonbinCollector {
     
     File in_dir = new File(in_folder);
 
-    JsonNode root = mapper.readTree(new File("./src/main/resources/template.json"));
+    JsonNode root = mapper.readTree(new File("./src/main/resources/chart_template.json"));
 
     ArrayNode traces = mapper.createArrayNode();
     for (String file : in_dir.list()) {
