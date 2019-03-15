@@ -16,6 +16,9 @@ public class TraceData<X,Y> {
   List<Y> yaxis = new ArrayList<>();
   String type = "scatter";
 
+  public TraceData() {  
+  }
+  
   public TraceData(String name) {
     this.name = name;
   }
@@ -31,5 +34,20 @@ public class TraceData<X,Y> {
 
   public List<X> xaxis() {
     return xaxis;
+  }
+  
+  @Override
+  public String toString() {
+    return "TraceData [name="
+        + name
+        + ", line="
+        + line
+        + ", xaxis="
+        + xaxis
+        + ", yaxis="
+        + yaxis
+        + ", type="
+        + type
+        + "]";
   }
 }
