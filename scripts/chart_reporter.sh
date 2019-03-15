@@ -3,10 +3,7 @@
 cd $(dirname $0)
 cd ../
 
-JAR_FILE=$(ls target |grep jar)
+JAR_FILE=$(find . -type f -name "*jar-with*")
 
 java \
-    -cp target/${JAR_FILE}:target/lib/* \
-    -XX:+UnlockDiagnosticVMOptions \
-    -XX:GuaranteedSafepointInterval=300000 \
-    ${JVM_OPTS} io.scalecube.trace.jsonbin.JsonbinCollector
+    -jar ${JAR_FILE}
