@@ -21,6 +21,13 @@ public class JsonbinClient {
     this.client = HTTP.client().reuseConnections(true).keepAlive(true);
   }
 
+  /**
+   * make a read request to jsonbin service.
+   *
+   * @param request paramters.
+   * @return JsonbinResponse containing content.
+   * @throws IOException error.
+   */
   public <R> Mono<JsonbinResponse> get(JsonbinRequest<R> request) throws IOException {
     return Mono.create(
         sink -> {
@@ -35,6 +42,12 @@ public class JsonbinClient {
         });
   }
 
+  /**
+   * update a json bin document.
+   *
+   * @param request with params.
+   * @return JsonbinResponse object
+   */
   public <R> Mono<JsonbinResponse> put(JsonbinRequest<R> request) {
     return Mono.create(
         sink -> {
@@ -56,6 +69,12 @@ public class JsonbinClient {
         });
   }
 
+  /**
+   * create a new json bin item.
+   *
+   * @param request with paramters
+   * @return jsonbin response.
+   */
   public <R> Mono<JsonbinResponse> post(JsonbinRequest<R> request) {
     return Mono.create(
         sink -> {
@@ -79,14 +98,22 @@ public class JsonbinClient {
 
   private HttpReq options(JsonbinRequest request) {
     HttpReq http = new HttpReq(client);
-    if (request.secret() != null) http = http.header("secret-key", request.secret());
+    if (request.secret() != null) {
+      http = http.header("secret-key", request.secret());
+    }
 
-    if (request.collectionId() != null) http = http.header("collection-id", request.collectionId());
+    if (request.collectionId() != null) {
+      http = http.header("collection-id", request.collectionId());
+    }
 
-    if (!request.versioning()) http = http.header("versioning", "false");
+    if (!request.versioning()) {
+      http = http.header("versioning", "false");
+    }
 
-    if(request.isPrivate()) http = http.header("private", "true");
-    
+    if (request.isPrivate()) {
+      http = http.header("private", "true");
+    }
+
     return http;
   }
 }

@@ -15,17 +15,17 @@ public class JsonbinRequest<T> {
   private boolean versioning;
 
   private boolean isPrivate;
-  
+
   private JsonbinRequest(Builder<T> builder) {
     this.secret = builder.secret;
     this.collectionId = builder.collectionId;
     this.body = builder.body;
     this.responseType = builder.responseType;
     this.url = builder.url;
-    this.versioning = builder.versioning ;
+    this.versioning = builder.versioning;
     this.isPrivate = builder.isPrivate;
   }
-  
+
   public String secret() {
     return secret;
   }
@@ -49,11 +49,11 @@ public class JsonbinRequest<T> {
   public boolean versioning() {
     return versioning;
   }
-  
+
   public boolean isPrivate() {
     return isPrivate;
   }
-  
+
   public static class Builder<T> {
 
     public boolean isPrivate = false;
@@ -82,12 +82,12 @@ public class JsonbinRequest<T> {
       this.versioning = versioning;
       return this;
     }
-    
+
     public Builder<T> isPrivate(boolean isPrivate) {
       this.isPrivate = isPrivate;
       return this;
     }
-    
+
     public Builder<T> body(T body) {
       this.body = body;
       return this;

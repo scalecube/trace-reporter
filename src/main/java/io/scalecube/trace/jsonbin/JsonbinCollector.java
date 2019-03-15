@@ -1,40 +1,37 @@
 package io.scalecube.trace.jsonbin;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.scalecube.trace.TraceReporter;
-import java.io.File;
 
 public class JsonbinCollector {
 
-  private static String in_folder = "./target/traces/";
-  private static String out_folder = "./target/charts/";
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static String DEFAULT_TRACES_FOLDER = "./target/traces/";
+  private static String DEFAULT_CHARTS_FOLDER = "./target/charts/";
+  private static String template = "./src/main/resources/chart_template.json";
 
+  /**
+   * upload chart bin to jsonbin service.
+   *
+   * @param args noop
+   * @throws Exception in case of error.
+   */
   public static void main(String[] args) throws Exception {
+
+    String traces = getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
+    String charts = getenvOrDefault("CHARTS_FOLDER", DEFAULT_CHARTS_FOLDER);
+    String templateFile = getenvOrDefault("CHART_TEMPLATE", template);
+
     TraceReporter r = new TraceReporter();
-    
-    File in_dir = new File(in_folder);
 
-    JsonNode root = mapper.readTree(new File("./src/main/resources/chart_template.json"));
+    r.createChart(traces, charts, templateFile);
 
-    ArrayNode traces = mapper.createArrayNode();
-    for (String file : in_dir.list()) {
-      traces.add("https://api.jsonbin.io/b/" + file);
-    }
-
-    ((ObjectNode) root).put("traces", traces);
-
-    root.path("traces");
-
-    r.sendToJsonbin(root)
-        .subscribe(
-            consumer -> {
-              r.dumpToFile(out_folder, consumer.id(), consumer.data()).subscribe();
-              System.out.println("https://api.jsonbin.io/b/" + consumer.id());
-            });
     Thread.currentThread().join();
+  }
+
+  private static String getenvOrDefault(String name, String orDefault) {
+    if (System.getenv(name) != null) {
+      return System.getenv(name);
+    } else {
+      return orDefault;
+    }
   }
 }

@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.scalecube.trace.jsonbin.JsonbinClient;
 import io.scalecube.trace.jsonbin.JsonbinRequest;
 import io.scalecube.trace.jsonbin.JsonbinRequest.Builder;
@@ -31,13 +34,14 @@ public class TraceReporter {
 
   static ObjectMapper mapper;
   static JsonGenerator generator;
+  private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b/";
 
   private final ScheduledExecutorService scheduler;
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
 
-  public static ObjectMapper initMapper() {
+  private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -165,6 +169,13 @@ public class TraceReporter {
     return sendToJsonbin(null, null, data);
   }
 
+  /**
+   * send all collected data to json bin service.
+   *
+   * @param secret optional nullable.
+   * @param collectionId optional nullable.
+   * @return json bin response.
+   */
   public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
     JsonbinClient client = new JsonbinClient(mapper);
 
@@ -173,13 +184,26 @@ public class TraceReporter {
             .url("https://api.jsonbin.io/b")
             .responseType(JsonbinResponse.class);
 
-    if (secret != null) b.secret(secret);
-    if (collectionId != null) b.collection(collectionId);
+    if (secret != null) {
+      b.secret(secret);
+    }
+
+    if (collectionId != null) {
+      b.collection(collectionId);
+    }
 
     return Flux.fromStream(traces.values().stream())
         .flatMap((value) -> client.post(b.body(value).build()));
   }
 
+  /**
+   * send to jsonbin a given data.
+   *
+   * @param secret optional nullable.
+   * @param collectionId optional nullable.
+   * @param body mandatory.
+   * @return json response bin.
+   */
   public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
 
     JsonbinClient client = new JsonbinClient(mapper);
@@ -189,8 +213,13 @@ public class TraceReporter {
             .url("https://api.jsonbin.io/b")
             .responseType(JsonbinResponse.class);
 
-    if (secret != null) b.secret(secret);
-    if (collectionId != null) b.collection(collectionId);
+    if (secret != null) {
+      b.secret(secret);
+    }
+
+    if (collectionId != null) {
+      b.collection(collectionId);
+    }
 
     return client.post(b.body(body).build());
   }
@@ -225,5 +254,49 @@ public class TraceReporter {
    */
   private LongAdder yadder(String name) {
     return yadder.computeIfAbsent(name, c -> new LongAdder());
+  }
+
+  /**
+   * create a chart report and upload to jsonbin.
+   *
+   * @param tracesFolder where is the data.
+   * @param chartsFolder where chart is created.
+   * @param chartTemplate the basis template of chart.
+   * @throws Exception in error case.
+   */
+  public void createChart(String tracesFolder, String chartsFolder, String chartTemplate)
+      throws Exception {
+
+    File inDir = new File(tracesFolder);
+    File templateFile = new File(chartTemplate);
+
+    JsonNode root = mapper.readTree(templateFile);
+
+    if (containsFiles(inDir)) {
+      setTraces(root, inDir.list());
+      sendToJsonbin(root)
+          .subscribe(
+              consumer -> {
+                dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
+                System.out.println(URL_API_JSONBIN_IO + consumer.id());
+              });
+    } else {
+      System.out.println("no files are found in" + tracesFolder);
+    }
+  }
+
+  private boolean containsFiles(File inDir) {
+    return inDir.list() != null && inDir.list().length > 0;
+  }
+
+  private void setTraces(JsonNode root, String[] listTraces) {
+    ArrayNode traces = mapper.createArrayNode();
+
+    for (String file : listTraces) {
+      traces.add(URL_API_JSONBIN_IO + file);
+    }
+    ((ObjectNode) root).put("traces", traces);
+
+    root.path("traces");
   }
 }
