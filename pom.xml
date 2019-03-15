@@ -40,6 +40,28 @@
       <groupId>org.rapidoid</groupId>
       <artifactId>rapidoid-http-client</artifactId>
       <version>5.5.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpmime</artifactId>
+        </exclusion>
+      </exclusions>
+
+
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/io.projectreactor/reactor-core -->
