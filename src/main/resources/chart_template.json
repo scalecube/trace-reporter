@@ -1,9 +1,9 @@
 
   {
     "layout": {
-      "title": "reactor-aeron-latency-mean<br><a href='www.google.com'>xxx</a>",
+      "title": "a chart title",
       "xaxis": {
-        "title": "data samples over time",
+        "title": "x-axis title",
         "titlefont": {
           "family": "Courier New, monospace",
           "size": 12,
@@ -11,10 +11,10 @@
         }
       },
       "yaxis" : {
-        "title": "latency microseconds",
+        "title": "y-axis title",
         "titlefont": {
           "family": "Courier New, monospace",
-          "size": 22,
+          "size": 12,
           "color": "#7f7f7f"
         }
       }
