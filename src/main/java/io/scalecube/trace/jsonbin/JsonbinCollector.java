@@ -10,14 +10,15 @@ import java.io.File;
 public class JsonbinCollector {
 
   private static String in_folder = "./target/traces/";
-  private static String out_folder = "./target/charts/report.json";
+  private static String out_folder = "./target/charts/";
   private static ObjectMapper mapper = new ObjectMapper();
 
   public static void main(String[] args) throws Exception {
     TraceReporter r = new TraceReporter();
+    
     File in_dir = new File(in_folder);
 
-    JsonNode root = mapper.readTree(new File(out_folder));
+    JsonNode root = mapper.readTree(new File("./src/main/resources/template.json"));
 
     ArrayNode traces = mapper.createArrayNode();
     for (String file : in_dir.list()) {
@@ -31,7 +32,7 @@ public class JsonbinCollector {
     r.sendToJsonbin(root)
         .subscribe(
             consumer -> {
-              System.out.println(consumer);
+              r.dumpToFile(out_folder, consumer.id(), consumer.data()).subscribe();
               System.out.println("https://api.jsonbin.io/b/" + consumer.id());
             });
     Thread.currentThread().join();
