@@ -20,6 +20,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -63,7 +65,7 @@ public class TraceReporter {
   public boolean isActive() {
     return isActive;
   }
-  
+
   public String tracesEnv() {
     return getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
   }
@@ -148,7 +150,10 @@ public class TraceReporter {
    * @throws IOException on file errors.
    */
   public Mono<Void> dumpToFile(String folder, String file, Object json) {
-    new File(folder).mkdir();
+    File dir = new File(folder);
+    if (!dir.exists()) {
+      dir.mkdirs();
+    }
     return dumpToFile(folder + file, json);
   }
 
@@ -215,8 +220,16 @@ public class TraceReporter {
       b.collection(collectionId);
     }
 
-    return Flux.fromStream(traces.values().stream())
-        .flatMap((value) -> client.post(b.body(value).build()));
+    return Flux.fromStream(traces.entrySet().stream())
+        .flatMap(
+            (entry) ->
+                client
+                    .post(b.body(entry.getValue()).build())
+                    .map(
+                        resp -> {
+                          ((JsonbinResponse) resp).name(entry.getKey());
+                          return resp;
+                        }));
   }
 
   /**
@@ -253,8 +266,19 @@ public class TraceReporter {
    * @return ScheduledFuture of the scheduler
    */
   public ScheduledFuture<?> scheduleDumpTo(Duration duration, String folder) {
+
     return scheduler.scheduleAtFixedRate(
-        () -> dumpTo(folder), duration.toMillis(), duration.toMillis(), TimeUnit.MILLISECONDS);
+        () ->
+            sendToJsonbin()
+                .subscribe(
+                    res -> {
+                      if (res.success()) {
+                        dumpToFile(folder, res.name(), res).subscribe();
+                      }
+                    }),
+        duration.toMillis(),
+        duration.toMillis(),
+        TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -297,11 +321,12 @@ public class TraceReporter {
             JsonNode root;
             try {
               root = fetchFromFileOrUrl(chartTemplate);
-              setTraces(root, inDir.list());
+              String[] tracesIds = readTracesIds(inDir);
+              setTraces(root, tracesIds);
               sendToJsonbin(root)
                   .subscribe(
                       consumer -> {
-                        dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
+                        dumpToFile(chartsFolder, consumer.name(), consumer.data()).subscribe();
                         System.out.println(URL_API_JSONBIN_IO + consumer.id());
                         sink.success();
                       });
@@ -313,6 +338,20 @@ public class TraceReporter {
             sink.error(new Exception("folder not found and or files are found in" + tracesFolder));
           }
         });
+  }
+
+  private String[] readTracesIds(File inDir) {
+    List<String> result = new ArrayList();
+    for (String file : inDir.list()) {
+      File src = new File(inDir, file);
+      try {
+        JsonbinResponse value = mapper.readValue(src, JsonbinResponse.class);
+        result.add(value.id());
+      } catch (IOException e) {
+        System.out.println(file + " file is not json or a Jsonbin result... skipping");
+      }
+    }
+    return result.toArray(new String[result.size()]);
   }
 
   private JsonNode fetchFromFileOrUrl(String location) throws Exception {
