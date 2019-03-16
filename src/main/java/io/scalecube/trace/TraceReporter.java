@@ -45,6 +45,8 @@ public class TraceReporter {
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
 
+  private JsonbinClient client;
+
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -74,6 +76,7 @@ public class TraceReporter {
     scheduler = Executors.newScheduledThreadPool(1);
     try {
       mapper = initMapper();
+      client = new JsonbinClient(mapper);
     } catch (Exception ex) {
       System.err.println(ex);
     }
@@ -193,8 +196,6 @@ public class TraceReporter {
    * @return json bin response.
    */
   public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
-    JsonbinClient client = new JsonbinClient(mapper);
-
     Builder b =
         JsonbinRequest.builder()
             .url("https://api.jsonbin.io/b")
@@ -221,8 +222,6 @@ public class TraceReporter {
    * @return json response bin.
    */
   public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
-
-    JsonbinClient client = new JsonbinClient(mapper);
 
     Builder b =
         JsonbinRequest.builder()
@@ -277,7 +276,7 @@ public class TraceReporter {
    *
    * @param tracesFolder where is the data.
    * @param chartsFolder where chart is created.
-   * @param chartTemplate the basis template of chart.
+   * @param chartTemplate location file or url as the basis template of chart.
    * @return mono void when operation completed.
    * @throws Exception in error case.
    */
@@ -287,12 +286,11 @@ public class TraceReporter {
     return Mono.create(
         sink -> {
           File inDir = new File(tracesFolder);
-          File templateFile = new File(chartTemplate);
 
-          if (containsFiles(inDir)) {
+          if (inDir.exists() && containsFiles(inDir)) {
             JsonNode root;
             try {
-              root = mapper.readTree(templateFile);
+              root = fetchFromFileOrUrl(chartTemplate);
               setTraces(root, inDir.list());
               sendToJsonbin(root)
                   .subscribe(
@@ -305,10 +303,30 @@ public class TraceReporter {
               sink.error(e);
             }
           } else {
-            System.out.println("no files are found in" + tracesFolder);
-            sink.error(new Exception());
+            System.out.println("folder not found and or files are found in" + tracesFolder);
+            sink.error(new Exception("folder not found and or files are found in" + tracesFolder));
           }
         });
+  }
+
+  private JsonNode fetchFromFileOrUrl(String location) throws Exception {
+    if (isUrl(location)) {
+      JsonbinRequest<JsonNode> req =
+          JsonbinRequest.builder().responseType(JsonNode.class).url(location).build();
+
+      return client.get(req).block();
+    } else {
+      File file = new File(location);
+      if (file.exists() && file.isFile()) {
+        return mapper.readTree(file);
+      } else {
+        throw new Exception("provided location: [" + location + "] does not exists or not a file.");
+      }
+    }
+  }
+
+  private boolean isUrl(String location) {
+    return location.startsWith("http://") || location.startsWith("https://");
   }
 
   private boolean containsFiles(File inDir) {
@@ -325,7 +343,7 @@ public class TraceReporter {
 
     root.path("traces");
   }
-  
+
   private static String getenvOrDefault(String name, String orDefault) {
     if (System.getenv(name) != null) {
       return System.getenv(name);

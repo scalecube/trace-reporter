@@ -15,6 +15,10 @@ public class JsonbinResponse<T> {
     return success;
   }
 
+  public String message() {
+    return message;
+  }
+  
   public T data() {
     return data;
   }

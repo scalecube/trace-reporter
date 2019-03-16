@@ -8,7 +8,7 @@
 cd $(dirname $0)
 cd ../
 
-JAR_FILE=$(find . -type f -name "*jar-with*.jar")
-
+curl -H "Accept: application/zip" https://github.com/scalecube/trace-reporter/releases/download/v0.0.5/trace-reporter-0.0.5-SNAPSHOT-jar-with-dependencies.jar -o ./target/reporter-1.jar
+ls ./target/
 java \
-    -jar ${JAR_FILE}
+    -jar ./target/reporter-1.jar -i 
