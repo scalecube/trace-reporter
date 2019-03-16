@@ -10,7 +10,5 @@ cd ../
 
 wget https://github.com/scalecube/trace-reporter/blob/latest/release/trace-reporter.jar?raw=true -O ./target/reporter-1.jar
 
-ls ./target/
-
 java \
-    -jar ./target/reporter-1.jar -i 
+    -jar ./target/reporter-1.jar -i ./target/traces/ -o ./target/charts -t ./src/main/resources/chart_template.json
