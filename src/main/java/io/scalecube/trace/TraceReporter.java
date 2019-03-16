@@ -44,6 +44,7 @@ public class TraceReporter {
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
+  private final boolean isActive;
 
   private JsonbinClient client;
 
@@ -59,6 +60,10 @@ public class TraceReporter {
     return mapper;
   }
 
+  public boolean isActive() {
+    return isActive;
+  }
+  
   public String tracesEnv() {
     return getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
   }
@@ -73,6 +78,7 @@ public class TraceReporter {
 
   /** create reporter. */
   public TraceReporter() {
+    isActive = System.getenv("TRACE_REPORT") != null;
     scheduler = Executors.newScheduledThreadPool(1);
     try {
       mapper = initMapper();
