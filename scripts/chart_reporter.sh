@@ -8,7 +8,9 @@
 cd $(dirname $0)
 cd ../
 
-curl -H "Accept: application/zip" https://github.com/scalecube/trace-reporter/releases/download/v0.0.5/trace-reporter-0.0.5-SNAPSHOT-jar-with-dependencies.jar -o ./target/reporter-1.jar
+wget https://github.com/scalecube/trace-reporter/blob/latest/release/trace-reporter.jar?raw=true -O ./target/reporter-1.jar
+
 ls ./target/
+
 java \
     -jar ./target/reporter-1.jar -i 
