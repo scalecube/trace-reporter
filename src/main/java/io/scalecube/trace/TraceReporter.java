@@ -62,9 +62,7 @@ public class TraceReporter {
     return mapper;
   }
 
-  /**
-   * to set to active create environment variable named TRACE_REPORT=true
-   */
+  /** to set to active create environment variable named TRACE_REPORT=true. */
   public boolean isActive() {
     return isActive;
   }
@@ -83,7 +81,8 @@ public class TraceReporter {
 
   /** create reporter. */
   public TraceReporter() {
-    isActive = System.getenv("TRACE_REPORT") != null && System.getenv("TRACE_REPORT").equals("true");
+    isActive =
+        System.getenv("TRACE_REPORT") != null && System.getenv("TRACE_REPORT").equals("true");
     scheduler = Executors.newScheduledThreadPool(1);
     try {
       mapper = initMapper();
