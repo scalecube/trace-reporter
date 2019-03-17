@@ -69,15 +69,15 @@ public class TraceReporter {
     return isActive;
   }
 
-  public String tracesLocation() {
+  public static String tracesLocation() {
     return getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
   }
 
-  public String chartsLocation() {
+  public static String chartsLocation() {
     return getenvOrDefault("CHARTS_FOLDER", DEFAULT_CHARTS_FOLDER);
   }
 
-  public String teplateLocation() {
+  public static String teplateLocation() {
     return getenvOrDefault("CHART_TEMPLATE", template);
   }
 
