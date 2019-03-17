@@ -28,7 +28,7 @@ public class JsonbinClient {
    * @return JsonbinResponse containing content.
    * @throws IOException error.
    */
-  public <R> Mono<JsonbinResponse> get(JsonbinRequest<R> request) throws IOException {
+  public <R> Mono<R> get(JsonbinRequest<R> request) throws IOException {
     return Mono.create(
         sink -> {
           client.executeRequest(
@@ -36,7 +36,13 @@ public class JsonbinClient {
               new Callback<HttpResp>() {
                 @Override
                 public void onDone(HttpResp result, Throwable error) throws Exception {
-                  sink.success(mapper.readValue(result.bodyBytes(), JsonbinResponse.class));
+                  if (error == null) {
+                    Object resp = mapper.readValue(result.bodyBytes(), request.responseType());
+
+                    sink.success((R) resp);
+                  } else {
+                    sink.error(error);
+                  }
                 }
               });
         });

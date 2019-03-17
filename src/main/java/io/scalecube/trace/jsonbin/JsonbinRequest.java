@@ -57,7 +57,7 @@ public class JsonbinRequest<T> {
   public static class Builder<T> {
 
     public boolean isPrivate = false;
-    public boolean versioning = false;
+    public boolean versioning = true;
     public Object body;
     public String secret;
     private String url;
