@@ -22,15 +22,15 @@ class ReportBuilder {
     TraceReporter r = new TraceReporter();
 
     if (args.input == null) {
-      args.input = r.tracesEnv();
+      args.input = r.tracesLocation();
     }
 
     if (args.output == null) {
-      args.output = r.chartsEnv();
+      args.output = r.chartsLocation();
     }
 
     if (args.template == null) {
-      args.template = r.teplateFileEnv();
+      args.template = r.teplateLocation();
     }
 
     try {

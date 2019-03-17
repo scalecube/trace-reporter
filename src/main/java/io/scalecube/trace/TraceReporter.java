@@ -62,25 +62,28 @@ public class TraceReporter {
     return mapper;
   }
 
+  /**
+   * to set to active create environment variable named TRACE_REPORT=true
+   */
   public boolean isActive() {
     return isActive;
   }
 
-  public String tracesEnv() {
+  public String tracesLocation() {
     return getenvOrDefault("TRACES_FOLDER", DEFAULT_TRACES_FOLDER);
   }
 
-  public String chartsEnv() {
+  public String chartsLocation() {
     return getenvOrDefault("CHARTS_FOLDER", DEFAULT_CHARTS_FOLDER);
   }
 
-  public String teplateFileEnv() {
+  public String teplateLocation() {
     return getenvOrDefault("CHART_TEMPLATE", template);
   }
 
   /** create reporter. */
   public TraceReporter() {
-    isActive = System.getenv("TRACE_REPORT") != null;
+    isActive = System.getenv("TRACE_REPORT") != null && System.getenv("TRACE_REPORT").equals("true");
     scheduler = Executors.newScheduledThreadPool(1);
     try {
       mapper = initMapper();
