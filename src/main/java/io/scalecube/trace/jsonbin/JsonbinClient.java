@@ -93,7 +93,11 @@ public class JsonbinClient {
                 new Callback<HttpResp>() {
                   @Override
                   public void onDone(HttpResp result, Throwable error) throws Exception {
-                    sink.success(mapper.readValue(result.bodyBytes(), JsonbinResponse.class));
+                    if (error == null) {
+                      sink.success(mapper.readValue(result.bodyBytes(), JsonbinResponse.class));
+                    } else {
+                      sink.error(error);
+                    }
                   }
                 });
           } catch (JsonProcessingException e) {

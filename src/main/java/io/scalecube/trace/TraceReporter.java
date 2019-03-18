@@ -328,7 +328,7 @@ public class TraceReporter {
               sendToJsonbin(root)
                   .subscribe(
                       consumer -> {
-                        dumpToFile(chartsFolder, consumer.name(), consumer.data()).subscribe();
+                        dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
                         System.out.println(URL_API_JSONBIN_IO + consumer.id());
                         sink.success();
                       });
