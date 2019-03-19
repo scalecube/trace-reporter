@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -329,8 +331,9 @@ public class TraceReporter {
                   .subscribe(
                       consumer -> {
                         dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
-                        System.out.println(URL_API_JSONBIN_IO + consumer.id());
-                        sink.success();
+                        String titile = getTitle(consumer);
+                        System.out.println(
+                            "result:-:" + titile + ":-:" + URL_API_JSONBIN_IO + consumer.id());
                       });
             } catch (Exception e) {
               sink.error(e);
@@ -340,6 +343,21 @@ public class TraceReporter {
             sink.error(new Exception("folder not found and or files are found in" + tracesFolder));
           }
         });
+  }
+
+  private String getTitle(JsonbinResponse consumer) {
+    try {
+      if (consumer.data().getClass().isAssignableFrom(LinkedHashMap.class)) {
+        HashMap result = (HashMap) consumer.data();
+
+        String titile = (String) ((HashMap) result.get("layout")).get("title");
+        return titile.replaceAll(":-:", "_");
+      } else {
+        return "no title found.";
+      }
+    } catch (Throwable t) {
+      return "no title found.";
+    }
   }
 
   private String[] readTracesIds(File inDir) {

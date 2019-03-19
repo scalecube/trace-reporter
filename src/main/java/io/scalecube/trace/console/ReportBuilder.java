@@ -37,7 +37,7 @@ class ReportBuilder {
       System.out.printf(
           "--input=%s  --output=%s  --template=%s \n", args.input, args.output, args.template);
 
-      r.createChart(args.input, args.output, args.template).block(Duration.ofSeconds(30));
+      r.createChart(args.input, args.output, args.template).block();
     } catch (Exception e) {
       System.out.println("failed with reason:" + e.getMessage());
     }
