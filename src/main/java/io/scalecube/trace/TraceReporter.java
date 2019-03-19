@@ -332,9 +332,14 @@ public class TraceReporter {
                       consumer -> {
                         dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
                         String titile = getTitle(consumer);
-                        System.out.println(
-                            "result:-:" + titile + ":-:" + URL_API_JSONBIN_IO + consumer.id());
+                        System.out.printf(
+                            "result:-:%s:-:%s", titile, URL_API_JSONBIN_IO + consumer.id() + "\n");
+                        sink.success();
+                      },
+                      error -> {
+                        sink.error(error);
                       });
+
             } catch (Exception e) {
               sink.error(e);
             }
@@ -347,7 +352,8 @@ public class TraceReporter {
 
   private String getTitle(JsonbinResponse consumer) {
     try {
-      if (consumer.data().getClass().isAssignableFrom(LinkedHashMap.class)) {
+      if (consumer.data() != null
+          && consumer.data().getClass().isAssignableFrom(LinkedHashMap.class)) {
         HashMap result = (HashMap) consumer.data();
 
         String titile = (String) ((HashMap) result.get("layout")).get("title");
