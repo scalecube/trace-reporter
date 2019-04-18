@@ -22,22 +22,22 @@ class ReportBuilder {
     TraceReporter r = new TraceReporter();
 
     if (args.input == null) {
-      args.input = r.tracesEnv();
+      args.input = r.tracesLocation();
     }
 
     if (args.output == null) {
-      args.output = r.chartsEnv();
+      args.output = r.chartsLocation();
     }
 
     if (args.template == null) {
-      args.template = r.teplateFileEnv();
+      args.template = r.teplateLocation();
     }
 
     try {
       System.out.printf(
           "--input=%s  --output=%s  --template=%s \n", args.input, args.output, args.template);
 
-      r.createChart(args.input, args.output, args.template).block(Duration.ofSeconds(30));
+      r.createChart(args.input, args.output, args.template).block();
     } catch (Exception e) {
       System.out.println("failed with reason:" + e.getMessage());
     }
