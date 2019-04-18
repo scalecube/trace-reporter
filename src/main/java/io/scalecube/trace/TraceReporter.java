@@ -196,11 +196,19 @@ public class TraceReporter {
   }
 
   public Flux<JsonbinResponse> sendToJsonbin() {
-    return sendToJsonbin(null, null);
+    String secret = System.getenv("JSON_BIN_SECRET");
+    return sendToJsonbin(secret, null);
   }
 
+  /**
+   * send all collected data to json bin service.
+   *
+   * @param data data sent to jsonbin.
+   * @return json bin response.
+   */
   public Mono<JsonbinResponse> sendToJsonbin(Object data) {
-    return sendToJsonbin(null, null, data);
+    String secret = System.getenv("JSON_BIN_SECRET");
+    return sendToJsonbin(secret, null, data);
   }
 
   /**
