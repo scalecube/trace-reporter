@@ -26,31 +26,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import reactor.core.Disposable;
+import reactor.core.Disposable.Composite;
+import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public class TraceReporter {
+public class TraceReporter implements AutoCloseable {
 
-  static ObjectMapper mapper;
-  static JsonGenerator generator;
-  private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b/";
+  private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b";
 
   private static String DEFAULT_TRACES_FOLDER = "./target/traces/";
   private static String DEFAULT_CHARTS_FOLDER = "./target/charts/";
   private static String template = "./src/main/resources/chart_template.json";
 
-  private final ScheduledExecutorService scheduler;
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
   private final boolean isActive;
+  private final String jsonBinSecret;
 
-  private JsonbinClient client;
+  private final Composite disposables = Disposables.composite();
+
+  private final ObjectMapper mapper;
+  private final JsonbinClient client;
 
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
@@ -85,13 +85,11 @@ public class TraceReporter {
   public TraceReporter() {
     isActive =
         System.getenv("TRACE_REPORT") != null && System.getenv("TRACE_REPORT").equals("true");
-    scheduler = Executors.newScheduledThreadPool(1);
-    try {
-      mapper = initMapper();
-      client = new JsonbinClient(mapper);
-    } catch (Exception ex) {
-      System.err.println(ex);
-    }
+
+    jsonBinSecret = System.getenv("JSON_BIN_SECRET");
+
+    mapper = initMapper();
+    client = new JsonbinClient(mapper);
   }
 
   /**
@@ -134,7 +132,6 @@ public class TraceReporter {
    * @param fullName path and file name of the file.
    * @param json data to store to file.
    * @return CompletableFuture of future result.
-   * @throws IOException on file errors.
    */
   public Mono<Void> dumpToFile(String fullName, Object json) {
     try {
@@ -151,7 +148,6 @@ public class TraceReporter {
    * @param file path and file name of the file.
    * @param json data to store to file.
    * @return CompletableFuture of future result.
-   * @throws IOException on file errors.
    */
   public Mono<Void> dumpToFile(String folder, String file, Object json) {
     File dir = new File(folder);
@@ -172,7 +168,7 @@ public class TraceReporter {
     return Mono.create(
         sink -> {
           try {
-            generator = mapper.getFactory().createGenerator(output);
+            JsonGenerator generator = mapper.getFactory().createGenerator(output);
             generator.writeObject(json);
             output.close();
             sink.success();
@@ -196,8 +192,7 @@ public class TraceReporter {
   }
 
   public Flux<JsonbinResponse> sendToJsonbin() {
-    String secret = System.getenv("JSON_BIN_SECRET");
-    return sendToJsonbin(secret, null);
+    return sendToJsonbin(jsonBinSecret, null);
   }
 
   /**
@@ -207,8 +202,7 @@ public class TraceReporter {
    * @return json bin response.
    */
   public Mono<JsonbinResponse> sendToJsonbin(Object data) {
-    String secret = System.getenv("JSON_BIN_SECRET");
-    return sendToJsonbin(secret, null, data);
+    return sendToJsonbin(jsonBinSecret, null, data);
   }
 
   /**
@@ -220,9 +214,7 @@ public class TraceReporter {
    */
   public Flux<JsonbinResponse> sendToJsonbin(String secret, String collectionId) {
     Builder b =
-        JsonbinRequest.builder()
-            .url("https://api.jsonbin.io/b")
-            .responseType(JsonbinResponse.class);
+        JsonbinRequest.builder().url(URL_API_JSONBIN_IO).responseType(JsonbinResponse.class);
 
     if (secret != null) {
       b.secret(secret);
@@ -255,9 +247,7 @@ public class TraceReporter {
   public Mono<JsonbinResponse> sendToJsonbin(String secret, String collectionId, Object body) {
 
     Builder b =
-        JsonbinRequest.builder()
-            .url("https://api.jsonbin.io/b")
-            .responseType(JsonbinResponse.class);
+        JsonbinRequest.builder().url(URL_API_JSONBIN_IO).responseType(JsonbinResponse.class);
 
     if (secret != null) {
       b.secret(secret);
@@ -277,20 +267,14 @@ public class TraceReporter {
    * @param folder target where .json files are created.
    * @return ScheduledFuture of the scheduler
    */
-  public ScheduledFuture<?> scheduleDumpTo(Duration duration, String folder) {
-
-    return scheduler.scheduleAtFixedRate(
-        () ->
-            sendToJsonbin()
-                .subscribe(
-                    res -> {
-                      if (res.success()) {
-                        dumpToFile(folder, res.name(), res).subscribe();
-                      }
-                    }),
-        duration.toMillis(),
-        duration.toMillis(),
-        TimeUnit.MILLISECONDS);
+  public Disposable scheduleDumpTo(Duration duration, String folder) {
+    Disposable disposable =
+        Flux.interval(duration, duration)
+            .flatMap(i -> sendToJsonbin())
+            .flatMap(res -> dumpToFile(folder, res.name(), res))
+            .subscribe(null, Throwable::printStackTrace);
+    disposables.add(disposable);
+    return disposable;
   }
 
   /**
@@ -320,10 +304,8 @@ public class TraceReporter {
    * @param chartsFolder where chart is created.
    * @param chartTemplate location file or url as the basis template of chart.
    * @return mono void when operation completed.
-   * @throws Exception in error case.
    */
-  public Mono<Void> createChart(String tracesFolder, String chartsFolder, String chartTemplate)
-      throws Exception {
+  public Mono<Void> createChart(String tracesFolder, String chartsFolder, String chartTemplate) {
 
     return Mono.create(
         sink -> {
@@ -341,12 +323,11 @@ public class TraceReporter {
                         dumpToFile(chartsFolder, consumer.id(), consumer.data()).subscribe();
                         String titile = getTitle(consumer);
                         System.out.printf(
-                            "result:-:%s:-:%s", titile, URL_API_JSONBIN_IO + consumer.id() + "\n");
+                            "result:-:%s:-:%s",
+                            titile, URL_API_JSONBIN_IO + "/" + consumer.id() + "\n");
                         sink.success();
                       },
-                      error -> {
-                        sink.error(error);
-                      });
+                      sink::error);
 
             } catch (Exception e) {
               sink.error(e);
@@ -356,6 +337,12 @@ public class TraceReporter {
             sink.error(new Exception("folder not found and or files are found in" + tracesFolder));
           }
         });
+  }
+
+  @Override
+  public void close() {
+    disposables.dispose();
+    client.close();
   }
 
   private String getTitle(JsonbinResponse consumer) {
@@ -375,7 +362,7 @@ public class TraceReporter {
   }
 
   private String[] readTracesIds(File inDir) {
-    List<String> result = new ArrayList();
+    List<String> result = new ArrayList<>();
     for (String file : inDir.list()) {
       File src = new File(inDir, file);
       try {
@@ -416,7 +403,7 @@ public class TraceReporter {
     ArrayNode traces = mapper.createArrayNode();
 
     for (String file : listTraces) {
-      traces.add(URL_API_JSONBIN_IO + file);
+      traces.add(URL_API_JSONBIN_IO + "/" + file);
     }
     ((ObjectNode) root).put("traces", traces);
 
