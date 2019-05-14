@@ -31,11 +31,16 @@ public class JsonbinResponse<T> {
   public T data() {
     return data;
   }
-  
+
   @Override
   public String toString() {
-    return "JsonbinResponse [id=" + id + ", success=" + success + ", data=" + data + "]";
+    final StringBuilder sb = new StringBuilder("JsonbinResponse{");
+    sb.append("id='").append(id).append('\'');
+    sb.append(", success=").append(success);
+    sb.append(", message='").append(message).append('\'');
+    sb.append(", data=").append(data);
+    sb.append(", name='").append(name).append('\'');
+    sb.append('}');
+    return sb.toString();
   }
-
-  
 }

@@ -2,7 +2,6 @@ package io.scalecube.trace.jsonbin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import org.rapidoid.concurrent.Callback;
 import org.rapidoid.http.HTTP;
 import org.rapidoid.http.HttpClient;
@@ -10,7 +9,7 @@ import org.rapidoid.http.HttpReq;
 import org.rapidoid.http.HttpResp;
 import reactor.core.publisher.Mono;
 
-public class JsonbinClient {
+public class JsonbinClient implements AutoCloseable {
 
   private static final String APPLICATION_JSON = "application/json";
   private final HttpClient client;
@@ -26,9 +25,8 @@ public class JsonbinClient {
    *
    * @param request paramters.
    * @return JsonbinResponse containing content.
-   * @throws IOException error.
    */
-  public <R> Mono<R> get(JsonbinRequest<R> request) throws IOException {
+  public <R> Mono<R> get(JsonbinRequest<R> request) {
     return Mono.create(
         sink -> {
           client.executeRequest(
@@ -66,7 +64,13 @@ public class JsonbinClient {
                 new Callback<HttpResp>() {
                   @Override
                   public void onDone(HttpResp result, Throwable error) throws Exception {
-                    sink.success(mapper.readValue(result.bodyBytes(), JsonbinResponse.class));
+                    JsonbinResponse response =
+                        mapper.readValue(result.bodyBytes(), JsonbinResponse.class);
+                    if (response.success()) {
+                      sink.success(response);
+                    } else {
+                      sink.error(new IllegalStateException(response.message()));
+                    }
                   }
                 });
           } catch (JsonProcessingException e) {
@@ -94,7 +98,13 @@ public class JsonbinClient {
                   @Override
                   public void onDone(HttpResp result, Throwable error) throws Exception {
                     if (error == null) {
-                      sink.success(mapper.readValue(result.bodyBytes(), JsonbinResponse.class));
+                      JsonbinResponse response =
+                          mapper.readValue(result.bodyBytes(), JsonbinResponse.class);
+                      if (response.success()) {
+                        sink.success(response);
+                      } else {
+                        sink.error(new IllegalStateException(response.message()));
+                      }
                     } else {
                       sink.error(error);
                     }
@@ -104,6 +114,11 @@ public class JsonbinClient {
             sink.error(e);
           }
         });
+  }
+
+  @Override
+  public void close() {
+    client.close();
   }
 
   private HttpReq options(JsonbinRequest request) {
