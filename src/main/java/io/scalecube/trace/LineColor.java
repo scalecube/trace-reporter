@@ -7,4 +7,5 @@ public class LineColor {
   public LineColor(String color) {
     this.color = color;
   }
+  
 }
