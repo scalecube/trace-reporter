@@ -10,15 +10,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.scalecube.trace.git.GitClient;
 import io.scalecube.trace.jsonbin.JsonbinClient;
 import io.scalecube.trace.jsonbin.JsonbinRequest;
 import io.scalecube.trace.jsonbin.JsonbinRequest.Builder;
 import io.scalecube.trace.jsonbin.JsonbinResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +34,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.rapidoid.http.HttpClient;
 import reactor.core.Disposable;
 import reactor.core.Disposable.Composite;
 import reactor.core.Disposables;
@@ -36,6 +46,8 @@ import reactor.core.publisher.Mono;
 public class TraceReporter implements AutoCloseable {
 
   private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b";
+  private static final String URL_GIT_CONTENT_URL =
+      "https://raw.githubusercontent.com/{SLUG}/{BRANCH}";
 
   private static String DEFAULT_TRACES_FOLDER = "./target/traces/";
   private static String DEFAULT_CHARTS_FOLDER = "./target/charts/";
@@ -51,6 +63,7 @@ public class TraceReporter implements AutoCloseable {
 
   private final ObjectMapper mapper;
   private final JsonbinClient client;
+  private final HttpClient httpClient;
 
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
@@ -339,6 +352,39 @@ public class TraceReporter implements AutoCloseable {
         });
   }
 
+  /**
+   * create a chart report and upload to jsonbin.
+   *
+   * @param git the git client.
+   * @param testName the name of this test.
+   * @param chartTemplate location file or url as the basis template of chart.
+   * @param testName 
+   * @return mono void when operation completed.
+   */
+  public Mono<Void> createChart(GitClient git, String chartTemplate, String branch) {
+    return Mono.create(
+        sink -> {
+            try {
+              git.checkout(branch).pull().hardReset();
+              InputStream chart;
+              chart = git.getFile(chartTemplate, false);
+              JsonNode root = mapper.reader().readTree(chart);
+              ((ArrayNode) root.get("traces")).addPOJO(traces);
+              mapper.writer().writeValue(git.writeToFile(chartTemplate), root);
+              git.add(chartTemplate)
+                  .commit(
+                      "traces for tests:\n\n"
+                          + traces.keySet().stream().collect(Collectors.joining("\n", " +", "")))
+                  .push();
+              sink.success();
+            } catch (GitAPIException | IOException ignoredException) {
+              sink.error(ignoredException);
+            }
+        })
+        .delaySubscription(Duration.ofSeconds(1))
+        .retry(1000, GitAPIException.class::isInstance).then();
+  }
+
   @Override
   public void close() {
     disposables.dispose();
@@ -377,10 +423,26 @@ public class TraceReporter implements AutoCloseable {
 
   private JsonNode fetchFromFileOrUrl(String location) throws Exception {
     if (isUrl(location)) {
-      JsonbinRequest<JsonNode> req =
-          JsonbinRequest.builder().responseType(JsonNode.class).url(location).build();
-
-      return client.get(req).block();
+      if (isJsonBinUrl(location)) {
+        JsonbinRequest<JsonNode> req =
+            JsonbinRequest.builder().responseType(JsonNode.class).url(location).build();
+        return client.get(req).block();
+      } else if (isGithubUrl(location)) {
+        return Mono.<JsonNode>create(
+                sink -> {
+                  httpClient
+                      .get(location)
+                      .execute(
+                          (result, error) -> {
+                            if (error == null) {
+                              sink.success(mapper.readValue(result.bodyBytes(), JsonNode.class));
+                            } else {
+                              sink.error(error);
+                            }
+                          });
+                })
+            .block();
+      }
     } else {
       File file = new File(location);
       if (file.exists() && file.isFile()) {
@@ -391,6 +453,14 @@ public class TraceReporter implements AutoCloseable {
     }
   }
 
+  private boolean isJsonBinUrl(String location) {
+    return location.contains("jsonbin");
+  }
+
+  private boolean isGithubUrl(String location) {
+    return location.contains("github");
+  }
+
   private boolean isUrl(String location) {
     return location.startsWith("http://") || location.startsWith("https://");
   }
@@ -399,15 +469,19 @@ public class TraceReporter implements AutoCloseable {
     return inDir.list() != null && inDir.list().length > 0;
   }
 
-  private void setTraces(JsonNode root, String[] listTraces) {
+  private void setTraces(JsonNode root, String base, String[] listTraces) {
     ArrayNode traces = mapper.createArrayNode();
 
     for (String file : listTraces) {
-      traces.add(URL_API_JSONBIN_IO + "/" + file);
+      traces.add(base + "/" + file);
     }
     ((ObjectNode) root).put("traces", traces);
 
     root.path("traces");
+  }
+
+  private void setTraces(JsonNode root, String[] listTraces) {
+    setTraces(root, URL_API_JSONBIN_IO, listTraces);
   }
 
   private static String getenvOrDefault(String name, String orDefault) {
