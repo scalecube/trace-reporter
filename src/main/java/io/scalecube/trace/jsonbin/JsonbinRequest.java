@@ -42,7 +42,7 @@ public class JsonbinRequest<T> {
     return body;
   }
 
-  public Class<?> responseType() {
+  public Class<T> responseType() {
     return responseType;
   }
 

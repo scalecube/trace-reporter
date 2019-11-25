@@ -31,16 +31,13 @@ public class JsonbinClient implements AutoCloseable {
         sink -> {
           client.executeRequest(
               options(request).get(request.url()).contentType(APPLICATION_JSON),
-              new Callback<HttpResp>() {
-                @Override
-                public void onDone(HttpResp result, Throwable error) throws Exception {
-                  if (error == null) {
-                    Object resp = mapper.readValue(result.bodyBytes(), request.responseType());
+              (result, error) -> {
+                if (error == null) {
+                  Object resp = mapper.readValue(result.bodyBytes(), request.responseType());
 
-                    sink.success((R) resp);
-                  } else {
-                    sink.error(error);
-                  }
+                  sink.success(request.responseType().cast(resp));
+                } else {
+                  sink.error(error);
                 }
               });
         });
@@ -52,7 +49,7 @@ public class JsonbinClient implements AutoCloseable {
    * @param request with params.
    * @return JsonbinResponse object
    */
-  public <R> Mono<JsonbinResponse> put(JsonbinRequest<R> request) {
+  public <R> Mono<JsonbinResponse<R>> put(JsonbinRequest<R> request) {
     return Mono.create(
         sink -> {
           try {
