@@ -368,6 +368,12 @@ public class TraceReporter implements AutoCloseable {
               try {
                 JsonNode root = mapper.reader().readTree(git.getFile(chartTemplate, false));
                 ArrayNode tracesJson = ((ArrayNode) root.get("traces"));
+                for (int i=0; i < tracesJson.size(); i++ ) {
+                  String name = tracesJson.get(i).get("name").asText("");
+                  if (traces.containsKey(name)) {
+                    tracesJson.remove(i--);
+                  }
+                }
                 traces.values().forEach(tracesJson::addPOJO);
                 mapper.writer(PRINTER).writeValue(git.writeToFile(chartTemplate), root);
                 return git;
