@@ -74,6 +74,10 @@ public class GitClient {
     return new GitClient(Git.cloneRepository().setDirectory(dir).setURI(uri).call());
   }
 
+  /**
+   * pull.
+   * @return this
+   */
   public GitClient pull() {
     try {
       if (!refs.isEmpty()) {
@@ -86,6 +90,12 @@ public class GitClient {
     return this;
   }
 
+  /**
+   * create a file.
+   * @param file the file path in the git working directory.
+   * @return the file
+   * @throws IOException whenever can not create the file
+   */
   public File createFile(String file) throws IOException {
     File f = new File(getWorkingDirectory(), file);
     f.getParentFile().mkdirs();
@@ -93,6 +103,13 @@ public class GitClient {
     return f;
   }
 
+  /**
+   * get a file for reading.
+   * @param file the file path in the git working directory.
+   * @param createIfNotFound create the file in case it does not exist
+   * @return an input stream for this file
+   * @throws IOException whenever can not get the file
+   */
   public InputStream getFile(String file, boolean createIfNotFound) throws IOException {
     try {
       return new FileInputStream(new File(getWorkingDirectory(), file));
@@ -107,6 +124,12 @@ public class GitClient {
     }
   }
 
+  /**
+   * write to a file.
+   * @param file the file path in the git working directory.
+   * @return an output stream for this file
+   * @throws FileNotFoundException when the file does not exist
+   */
   public OutputStream writeToFile(String file) throws FileNotFoundException {
     return new FileOutputStream(new File(getWorkingDirectory(), file));
   }
@@ -150,6 +173,11 @@ public class GitClient {
     return git.getRepository().getWorkTree();
   }
 
+  /**
+   * check out branch / tag / reference.
+   * @param branch the branch name
+   * @return this
+   */
   public GitClient checkout(String branch) {
     try {
       refs.add(
@@ -172,6 +200,10 @@ public class GitClient {
     return this;
   }
 
+  /**
+   * perform hard reset on checked out refs.
+   * @return this
+   */
   public GitClient hardReset() {
     this.refs.forEach(
         ref -> {
@@ -185,6 +217,10 @@ public class GitClient {
     return this;
   }
 
+  /**
+   * fetch remote into the branch.
+   * @return this
+   */
   public GitClient fetchFromOriginToBranch() {
     refs.forEach(
         ref -> {

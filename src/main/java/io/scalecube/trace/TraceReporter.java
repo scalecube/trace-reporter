@@ -352,7 +352,7 @@ public class TraceReporter implements AutoCloseable {
   /**
    * create a chart report and upload to git.
    *
-   * @param git the git client.
+   * @param gitClient the git client.
    * @param chartTemplate location file or url as the basis template of chart.
    * @return mono void when operation completed.
    */
