@@ -176,7 +176,8 @@ public class GitClient {
     this.refs.forEach(
         ref -> {
           try {
-            git.reset().setMode(ResetType.HARD).call();
+            String resetTo = ref.getLeaf().getName();
+            git.reset().setMode(ResetType.HARD).setRef(resetTo).call();
           } catch (GitAPIException ignoredException) {
             throw new RuntimeException(ignoredException);
           }
