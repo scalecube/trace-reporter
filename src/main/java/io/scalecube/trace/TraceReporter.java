@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
-import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import reactor.core.Disposable;
@@ -368,7 +367,7 @@ public class TraceReporter implements AutoCloseable {
               try {
                 JsonNode root = mapper.reader().readTree(git.getFile(chartTemplate, false));
                 ArrayNode tracesJson = ((ArrayNode) root.get("traces"));
-                for (int i=0; i < tracesJson.size(); i++ ) {
+                for (int i = 0; i < tracesJson.size(); i++) {
                   String name = tracesJson.get(i).get("name").asText("");
                   if (traces.containsKey(name)) {
                     tracesJson.remove(i--);
@@ -394,13 +393,12 @@ public class TraceReporter implements AutoCloseable {
               }
             })
         .flatMap(git -> git.push())
-        .doOnError(th -> {
-          gitClient.fetchFromOriginToBranch().hardReset().pull();
-        })
+        .doOnError(
+            th -> {
+              gitClient.fetchFromOriginToBranch().hardReset().pull();
+            })
         .delaySubscription(Duration.ofSeconds(1))
-        .retry(
-            1000,
-            t -> "non-fast-forward".equals(t.getMessage()))
+        .retry(1000, t -> "non-fast-forward".equals(t.getMessage()))
         .then();
   }
 
