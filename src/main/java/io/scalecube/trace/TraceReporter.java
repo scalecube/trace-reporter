@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.scalecube.trace.git.GitClient;
 import io.scalecube.trace.jsonbin.JsonbinClient;
 import io.scalecube.trace.jsonbin.JsonbinRequest;
 import io.scalecube.trace.jsonbin.JsonbinRequest.Builder;
@@ -18,7 +21,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,15 +32,20 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import reactor.core.Disposable;
 import reactor.core.Disposable.Composite;
 import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
 
 public class TraceReporter implements AutoCloseable {
 
   private static final String URL_API_JSONBIN_IO = "https://api.jsonbin.io/b";
+  private static final PrettyPrinter PRINTER = new DefaultPrettyPrinter();
 
   private static String DEFAULT_TRACES_FOLDER = "./target/traces/";
   private static String DEFAULT_CHARTS_FOLDER = "./target/charts/";
@@ -337,6 +347,88 @@ public class TraceReporter implements AutoCloseable {
             sink.error(new Exception("folder not found and or files are found in" + tracesFolder));
           }
         });
+  }
+
+  /**
+   * create a chart report and upload to git.
+   *
+   * @param gitClient the git client.
+   * @param chartTemplate location file or url as the basis template of chart.
+   * @return mono void when operation completed.
+   */
+  public Mono<Void> createChart(GitClient gitClient, String chartTemplate, String branch) {
+    return Mono.just(gitClient)
+        .map(git -> git.checkout(branch))
+        .map(git -> git.pull().hardReset())
+        .onErrorResume(
+            ex -> ex.getCause() instanceof RefNotAdvertisedException, ex -> Mono.just(gitClient))
+        .map(
+            git -> {
+              try {
+                JsonNode root = mapper.reader().readTree(git.getFile(chartTemplate, false));
+                ArrayNode tracesJson = ((ArrayNode) root.get("traces"));
+                for (int i = 0; i < tracesJson.size(); i++) {
+                  String name = tracesJson.get(i).get("name").asText("");
+                  if (traces.containsKey(name)) {
+                    tracesJson.remove(i--);
+                  }
+                }
+                traces.values().forEach(tracesJson::addPOJO);
+                mapper.writer(PRINTER).writeValue(git.writeToFile(chartTemplate), root);
+                return git;
+              } catch (IOException ignoredException) {
+                throw new UncheckedIOException(ignoredException);
+              }
+            })
+        .map(
+            git -> {
+              try {
+                return git.add(chartTemplate)
+                    .commit(
+                        "traces for tests:\n"
+                            + traces.keySet().stream()
+                                .collect(Collectors.joining("\n+", "\n+", "")));
+              } catch (GitAPIException ignoredException) {
+                throw new RuntimeException(ignoredException);
+              }
+            })
+        .flatMap(git -> git.push())
+        .doOnError(
+            th -> {
+              gitClient.fetchFromOriginToBranch().hardReset().pull();
+            })
+        .delaySubscription(Duration.ofSeconds(1))
+        .retry(1000, t -> "non-fast-forward".equals(t.getMessage()))
+        .then();
+  }
+
+  private void updateChartOnGitRepo(
+      GitClient git, String chartTemplate, String branch, MonoSink<Object> sink) {
+    try {
+      git.checkout(branch);
+      //      try {
+      //        git.pull().hardReset();
+      //      } catch (RefNotAdvertisedException ignoredException) {
+      //        // it's legitimate to have no remote at this point.
+      //      } catch (GitAPIException ignoredException) {
+      //        sink.error(ignoredException);
+      //        return;
+      //      }
+      InputStream chart;
+      chart = git.getFile(chartTemplate, false);
+      JsonNode root = mapper.reader().readTree(chart);
+      ArrayNode tracesJson = ((ArrayNode) root.get("traces"));
+      traces.values().forEach(tracesJson::addPOJO);
+      mapper.writer().writeValue(git.writeToFile(chartTemplate), root);
+      git.add(chartTemplate)
+          .commit(
+              "traces for tests:\n\n"
+                  + traces.keySet().stream().collect(Collectors.joining("\n", "+", "\n")))
+          .push();
+      sink.success();
+    } catch (GitAPIException | IOException ignoredException) {
+      sink.error(ignoredException);
+    }
   }
 
   @Override
