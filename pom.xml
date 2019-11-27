@@ -33,48 +33,13 @@
       <version>${jackson.version}</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.rapidoid/rapidoid-http-client -->
-    <dependency>
-      <groupId>org.rapidoid</groupId>
-      <artifactId>rapidoid-http-client</artifactId>
-      <version>5.5.5</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpmime</artifactId>
-        </exclusion>
-      </exclusions>
-
-
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/io.projectreactor/reactor-core -->
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.2.6.RELEASE</version>
+      <version>3.2.9.RELEASE</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/com.beust/jcommander -->
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
-      <version>1.72</version>
-    </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
     <dependency>
@@ -82,8 +47,6 @@
       <artifactId>org.eclipse.jgit</artifactId>
       <version>5.5.1.201910021850-r</version>
     </dependency>
-
-
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
