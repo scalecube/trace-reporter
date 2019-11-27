@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>trace-reporter</artifactId>
-  <version>0.0.11</version>
+  <version>0.0.12-SNAPSHOT</version>
 
   <name>ScaleCube Trace Reporter</name>
 
@@ -18,7 +18,7 @@
     <connection>scm:git:git@github.com:scalecube/trace-reporter.git</connection>
     <developerConnection>scm:git:git@github.com:scalecube/trace-reporter.git
     </developerConnection>
-    <tag>v0.0.11</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
