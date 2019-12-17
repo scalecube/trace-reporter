@@ -1,22 +1,16 @@
-package io.scalecube.trace;
+package io.scalecube.trace.service.reporter;
 
-import io.scalecube.trace.git.GitClient;
+import io.scalecube.trace.TraceReporter;
 import java.io.IOException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.TestAbortedException;
 
-class GitClientTests {
+class PerfromanceServicetest {
 
   @Test
   void testFlow() throws InvalidRemoteException, TransportException, IOException, GitAPIException {
-    String slug = System.getProperty("slug", "");
-    if (slug.trim().isEmpty()) {
-      throw new TestAbortedException("missing slug configuration in the test");
-    }
-    GitClient git = GitClient.cloneRepo("git@github.com:" + slug + ".git");
     try (TraceReporter reporter = new TraceReporter()) {
       reporter.addY("ABC","A", 72);
       reporter.addY("ABC","A", 63);
@@ -26,7 +20,9 @@ class GitClientTests {
       reporter.addY("XYZ","A", 151);
       reporter.addY("XYZ","A", 143);
 
-      reporter.createChart(git, "template.json", "test-with-data").block();
+      PerfromanceReporter.publish("http://localhost:7778/traces/add","1", reporter.traces());
+      
+      PerfromanceReporter.publish(reporter);
     }
   }
 }
