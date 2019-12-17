@@ -18,7 +18,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.LongAdder;
@@ -58,7 +62,7 @@ public class TraceReporter implements AutoCloseable {
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     return mapper;
   }
-
+  
   /** to set to active create environment variable named TRACE_REPORT=true. */
   public boolean isActive() {
     return isActive;
@@ -90,8 +94,8 @@ public class TraceReporter implements AutoCloseable {
    * @param name of the trace.
    * @return TraceData with a given name.
    */
-  public <X, Y> TraceData<X, Y> trace(String name) {
-    return (TraceData<X, Y>) traces.computeIfAbsent(name, c -> new TraceData<>(c));
+  public <X, Y> TraceData<X, Y> trace(String name, String group) {
+    return (TraceData<X, Y>) traces.computeIfAbsent((name), c -> new TraceData<>(c, group));
   }
 
   /**
@@ -100,10 +104,10 @@ public class TraceReporter implements AutoCloseable {
    * @param name of trace
    * @param value to add.
    */
-  public <X> void addY(String name, X value) {
+  public <X> void addY(String name, String group, X value) {
     xadder(name).increment();
-    trace(name).xaxis().add(xadder(name).longValue());
-    trace(name).yaxis().add(value);
+    trace(name, group).xaxis().add(xadder(name).longValue());
+    trace(name, group).yaxis().add(value);
   }
 
   /**
@@ -112,10 +116,10 @@ public class TraceReporter implements AutoCloseable {
    * @param name of trace
    * @param value to add.
    */
-  public <Y> void addX(String name, Y value) {
+  public <Y> void addX(String name, String group, Y value) {
     yadder(name).increment();
-    trace(name).yaxis().add(yadder(name).longValue());
-    trace(name).xaxis().add(value);
+    trace(name, group).yaxis().add(yadder(name).longValue());
+    trace(name, group).xaxis().add(value);
   }
 
   /**
@@ -183,7 +187,6 @@ public class TraceReporter implements AutoCloseable {
         .then();
   }
 
-
   /**
    * get or create x axis long adder.
    *
@@ -203,7 +206,6 @@ public class TraceReporter implements AutoCloseable {
   private LongAdder yadder(String name) {
     return yadder.computeIfAbsent(name, c -> new LongAdder());
   }
-
 
   /**
    * create a chart report and upload to git.
@@ -242,7 +244,9 @@ public class TraceReporter implements AutoCloseable {
                 return git.add(chartTemplate)
                     .commit(
                         "traces for tests:\n"
-                            + traces.keySet().stream()
+                            + traces
+                                .keySet()
+                                .stream()
                                 .collect(Collectors.joining("\n+", "\n+", "")));
               } catch (GitAPIException ignoredException) {
                 throw new RuntimeException(ignoredException);
@@ -263,12 +267,15 @@ public class TraceReporter implements AutoCloseable {
     disposables.dispose();
   }
 
-
   private static String getenvOrDefault(String name, String orDefault) {
     if (System.getenv(name) != null) {
       return System.getenv(name);
     } else {
       return orDefault;
     }
+  }
+
+  public Collection<TraceData<Object, Object>> traces() {
+    return this.traces.values();
   }
 }
