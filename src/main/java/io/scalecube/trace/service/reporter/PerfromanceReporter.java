@@ -21,8 +21,8 @@ public class PerfromanceReporter {
   private static final ObjectMapper mapper = initMapper();
 
   static final String TRACE_REPORT_URL = getenvOrDefault("TRACE_REPORT_URL", "");
-  static final String CID = getenvOrDefault("CID", "");
-
+  static final String CID = getenvOrDefault("CID", "COMMIT_ID");
+  
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
