@@ -20,8 +20,10 @@ public class PerfromanceReporter {
 
   private static final ObjectMapper mapper = initMapper();
 
-  static final String TRACE_REPORT_URL = getenvOrDefault("TRACE_REPORT_URL", "");
-  static final String CID = getenvOrDefault("CID", "COMMIT_ID");
+  static final String OWNER = getenvOrDefault("OWNER", "scalecube");
+  static final String REPO = getenvOrDefault("REPO", "github-gateway");
+  static final String CID = getenvOrDefault("COMMIT_ID", "1");
+  static final String TRACE_REPORT_URL = getenvOrDefault("TRACE_REPORT_URL", "https://scalecube-7778.exchange.om2.com/traces/add");
   
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
@@ -39,15 +41,20 @@ public class PerfromanceReporter {
    * publish test results to the given url.
    *
    * @param url traget service colleciting these results.
-   * @param cid the context or commit id of this publish request.
+   * @param sha the context or commit id of this publish request.
    * @param collection the traces result of the test run.
    * @throws IOException on error.
    */
   public static void publish(
-      String url, String cid, Collection<TraceData<Object, Object>> collection) throws IOException {
+      String url,
+      String owner,
+      String repo,
+      String sha,
+      Collection<TraceData<Object, Object>> collection)
+      throws IOException {
 
     TraceData[] traces = collection.toArray(new TraceData[collection.size()]);
-    PerfromanceTestRequest req = new PerfromanceTestRequest(cid, traces);
+    PerfromanceTestRequest req = new PerfromanceTestRequest(owner, repo, sha, traces);
     postResults(url, mapper.writeValueAsString(req));
   }
 
@@ -58,9 +65,9 @@ public class PerfromanceReporter {
    * @throws IOException error if there is exception.
    */
   public static void publish(TraceReporter reporter) throws IOException {
-    publish(TRACE_REPORT_URL, CID, reporter.traces());
+    publish(TRACE_REPORT_URL,OWNER,REPO, CID, reporter.traces());
   }
-  
+
   /**
    * post http request to endpoint url.
    *
@@ -110,6 +117,4 @@ public class PerfromanceReporter {
       return orDefault;
     }
   }
-
-  
 }
