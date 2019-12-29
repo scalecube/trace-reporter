@@ -18,13 +18,21 @@ class GitClientTests {
     }
     GitClient git = GitClient.cloneRepo("git@github.com:" + slug + ".git");
     try (TraceReporter reporter = new TraceReporter()) {
-      reporter.addY("ABC","A", 72);
-      reporter.addY("ABC","A", 63);
-      reporter.addY("ABC","A", 45);
-      reporter.addY("ABC","A", 52);
-      reporter.addY("XYZ","A", 161);
-      reporter.addY("XYZ","A", 151);
-      reporter.addY("XYZ","A", 143);
+      reporter.addY("ABC","latency", 72);
+      reporter.addY("ABC","latency", 63);
+      reporter.addY("ABC","latency", 45);
+      reporter.addY("ABC","latency", 52);
+      reporter.addY("XYZ","latency", 161);
+      reporter.addY("XYZ","latency", 151);
+      reporter.addY("XYZ","latency", 143);
+
+      reporter.addY("ABC","throughput", 52);
+      reporter.addY("ABC","throughput", 53);
+      reporter.addY("ABC","throughput", 35);
+      reporter.addY("ABC","throughput", 62);
+      reporter.addY("XYZ","throughput", 361);
+      reporter.addY("XYZ","throughput", 151);
+      reporter.addY("XYZ","throughput", 343);
 
       reporter.createChart(git, "template.json", "test-with-data").block();
     }

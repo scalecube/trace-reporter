@@ -8,6 +8,7 @@ public class TraceData<X,Y> {
 
   String name;
   String group;
+  String hovertemplate = "<b>%{y}</b>";
   LineColor line;
   
   @JsonProperty("x")

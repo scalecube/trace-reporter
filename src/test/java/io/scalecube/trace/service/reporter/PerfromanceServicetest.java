@@ -12,16 +12,24 @@ class PerfromanceServicetest {
   @Test
   void testFlow() throws InvalidRemoteException, TransportException, IOException, GitAPIException {
     try (TraceReporter reporter = new TraceReporter()) {
-      reporter.addY("ABC","A", 72);
-      reporter.addY("ABC","A", 63);
-      reporter.addY("ABC","A", 45);
-      reporter.addY("ABC","A", 52);
-      reporter.addY("XYZ","A", 161);
-      reporter.addY("XYZ","A", 151);
-      reporter.addY("XYZ","A", 143);
+    	 reporter.addY("latency-1","latency", 72);
+         reporter.addY("latency-1","latency", 63);
+         reporter.addY("latency-1","latency", 45);
+         
+         reporter.addY("latency-2","latency", 52);
+         reporter.addY("latency-2","latency", 161);
+         reporter.addY("latency-2","latency", 151);
+         reporter.addY("latency-2","latency", 143);
 
-      PerfromanceReporter.publish("http://localhost:7778/traces/add","1", reporter.traces());
-      
+         reporter.addY("throughput-1","throughput", 52);
+         reporter.addY("throughput-1","throughput", 53);
+         reporter.addY("throughput-1","throughput", 35);
+         reporter.addY("throughput-1","throughput", 62);
+         
+         reporter.addY("throughput-2","throughput", 361);
+         reporter.addY("throughput-2","throughput", 151);
+         reporter.addY("throughput-2","throughput", 343);
+         
       PerfromanceReporter.publish(reporter);
     }
   }
