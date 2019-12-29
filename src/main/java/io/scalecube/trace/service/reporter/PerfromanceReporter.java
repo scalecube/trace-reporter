@@ -25,6 +25,7 @@ public class PerfromanceReporter {
   static final String CID = getenvOrDefault("COMMIT_ID", "1");
   static final String TRACE_REPORT_URL = getenvOrDefault("TRACE_REPORT_URL", "https://scalecube-7778.exchange.om2.com/traces/add");
   
+  
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
