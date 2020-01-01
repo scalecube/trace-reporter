@@ -25,6 +25,7 @@ public class ThroughputReporter implements AutoCloseable {
 
   private long reportIntervalNs;
   private Disposable disposable;
+
   /**
    * Launch this test reporter.
    *
