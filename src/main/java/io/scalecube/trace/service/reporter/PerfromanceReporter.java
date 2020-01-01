@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.scalecube.trace.EnviromentVariables;
 import io.scalecube.trace.TraceData;
 import io.scalecube.trace.TraceReporter;
 import java.io.BufferedReader;
@@ -20,10 +21,10 @@ public class PerfromanceReporter {
 
   private static final ObjectMapper mapper = initMapper();
 
-  public static String OWNER = getenvOrDefault("OWNER", "scalecube");
-  public static String REPO = getenvOrDefault("REPO", "github-gateway");
-  public static String CID = getenvOrDefault("COMMIT_ID", "1");
-  public static String TRACE_REPORT_URL = getenvOrDefault("TRACE_REPORT_URL", "https://scalecube-7778.exchange.om2.com/traces/add");
+  public static String OWNER = EnviromentVariables.owner("scalecube");
+  public static String REPO = EnviromentVariables.repo("github-gateway");
+  public static String CID = EnviromentVariables.sha("1");
+  public static String TRACE_REPORT_URL = EnviromentVariables.url("https://scalecube-7778.exchange.om2.com/traces/add");
   
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
@@ -108,13 +109,5 @@ public class PerfromanceReporter {
 
     // printing result from response
     System.out.println(response.toString());
-  }
-
-  private static String getenvOrDefault(String name, String orDefault) {
-    if (System.getenv(name) != null) {
-      return System.getenv(name);
-    } else {
-      return orDefault;
-    }
   }
 }
