@@ -37,9 +37,9 @@ public class ThroughputReporter implements AutoCloseable {
 
   /**
    * setup warm-up time of the test.
-   * 
+   *
    * @param warmupTime in millis.
-   * @return ThroughputReporter 
+   * @return ThroughputReporter
    */
   public ThroughputReporter warmupTime(int warmupTime) {
     this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
@@ -48,15 +48,15 @@ public class ThroughputReporter implements AutoCloseable {
 
   /**
    * setup warmupIterations of the test.
-   * 
+   *
    * @param warmupIterations in before test starts.
-   * @return ThroughputReporter 
+   * @return ThroughputReporter
    */
   public ThroughputReporter warmupIterations(int warmupIterations) {
     this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     return this;
   }
-  
+
   /**
    * Create rate reporter.
    *
@@ -67,6 +67,7 @@ public class ThroughputReporter implements AutoCloseable {
     this.listener = listener;
   }
 
+  /** Start the reporter collector. */
   public void start() {
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));

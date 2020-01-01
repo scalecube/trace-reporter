@@ -55,6 +55,7 @@ public class LatencyReporter implements AutoCloseable {
     return this;
   }
 
+  /** start latency reporter. */
   public void start() {
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
