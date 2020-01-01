@@ -21,9 +21,6 @@ public class TraceReporter implements AutoCloseable {
     return isActive;
   }
 
-  /** create reporter. */
-  public TraceReporter() {}
-
   /**
    * get or create a trace line with a given name.
    *
