@@ -1,27 +1,22 @@
 package io.scalecube.trace.service.reporter.latency;
 
+import io.scalecube.trace.service.reporter.Reporter;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 import org.agrona.CloseHelper;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
-public class LatencyReporter implements AutoCloseable {
+public class LatencyReporter extends Reporter {
 
   private final Recorder histogram;
 
   private Histogram accumulatedHistogram;
-
-  private boolean warmupFinished = false;
+  
   private final LatencyListener listener;
-  private int warmupTime = 1000;
-  private int warmupIterations = 1000;
-  private Duration reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-
-  private Disposable disposable;
+  
 
   /**
    * Launch this test reporter.
@@ -31,28 +26,6 @@ public class LatencyReporter implements AutoCloseable {
    */
   public static LatencyReporter create(LatencyListener... listeners) {
     return new LatencyReporter(new CompositeReportingLatencyListener(listeners));
-  }
-
-  /**
-   * setup warm-up time of the test.
-   *
-   * @param warmupTime in millis.
-   * @return ThroughputReporter
-   */
-  public LatencyReporter warmupTime(int warmupTime) {
-    this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    return this;
-  }
-
-  /**
-   * setup warmupIterations of the test.
-   *
-   * @param warmupIterations in before test starts.
-   * @return ThroughputReporter
-   */
-  public LatencyReporter warmupIterations(int warmupIterations) {
-    this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    return this;
   }
 
   /** start latency reporter. */

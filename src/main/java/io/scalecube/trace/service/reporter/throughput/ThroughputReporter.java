@@ -1,14 +1,14 @@
 package io.scalecube.trace.service.reporter.throughput;
 
+import io.scalecube.trace.service.reporter.Reporter;
 import java.time.Duration;
 import java.util.concurrent.atomic.LongAdder;
 import org.agrona.CloseHelper;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 /** Tracker and listener of throughput rates. */
-public class ThroughputReporter implements AutoCloseable {
+public class ThroughputReporter extends Reporter  {
 
   private final ThroughputListener listener;
 
@@ -18,13 +18,8 @@ public class ThroughputReporter implements AutoCloseable {
   private long lastTotalBytes;
   private long lastTotalMessages;
   private long lastTimestamp;
-  private int warmupTime = 1000;
-  private int warmupIterations = 1000;
-  private Duration reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-  private boolean warmupFinished = false;
-
   private long reportIntervalNs;
-  private Disposable disposable;
+  
 
   /**
    * Launch this test reporter.
@@ -34,28 +29,6 @@ public class ThroughputReporter implements AutoCloseable {
    */
   public static ThroughputReporter create(ThroughputListener... listeners) {
     return new ThroughputReporter(new CompositeThroughputListener(listeners));
-  }
-
-  /**
-   * setup warm-up time of the test.
-   *
-   * @param warmupTime in millis.
-   * @return ThroughputReporter
-   */
-  public ThroughputReporter warmupTime(int warmupTime) {
-    this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    return this;
-  }
-
-  /**
-   * setup warmupIterations of the test.
-   *
-   * @param warmupIterations in before test starts.
-   * @return ThroughputReporter
-   */
-  public ThroughputReporter warmupIterations(int warmupIterations) {
-    this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    return this;
   }
 
   /**
