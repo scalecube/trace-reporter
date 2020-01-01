@@ -7,13 +7,12 @@ import org.HdrHistogram.Histogram;
 
 public class PerfServiceLatencyListener implements LatencyListener {
 
-
   private final TraceReporter reporter;
   private final String testName = EnviromentVariables.testName("TEST_NAME");
   private final String commitId = EnviromentVariables.sha("1");
-  private final double scalingRatio = EnviromentVariables.scalingRatio(1000.0) ; // microseconds
+  private final double scalingRatio = EnviromentVariables.scalingRatio(1000.0); // microseconds
   private double[] percentiles;
-  
+
   public PerfServiceLatencyListener(double... percentiles) {
     this.reporter = new TraceReporter();
     this.percentiles = percentiles;
