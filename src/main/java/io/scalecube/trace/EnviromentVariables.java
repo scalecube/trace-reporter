@@ -45,6 +45,6 @@ public class EnviromentVariables {
   }
 
   public static double scalingRatio(double d) { // TODO Auto-generated method stub
-	  return Double.valueOf(env("SCALE_RATIO", String.valueOf(d)));
+    return Double.valueOf(env("SCALE_RATIO", String.valueOf(d)));
   }
 }
