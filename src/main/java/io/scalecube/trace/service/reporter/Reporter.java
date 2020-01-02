@@ -5,8 +5,8 @@ import reactor.core.Disposable;
 
 public abstract class Reporter implements AutoCloseable {
 
-  protected int warmupTime = 1000;
-  protected int warmupIterations = 1000;
+  protected int warmupTime = 1;
+  protected int warmupIterations = 1;
   protected boolean warmupFinished = false;
 
   protected Duration reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
@@ -15,6 +15,8 @@ public abstract class Reporter implements AutoCloseable {
   public Reporter() {
     super();
   }
+
+  protected abstract <T> T start();
 
   /**
    * setup warm-up time of the test.
