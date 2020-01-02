@@ -17,6 +17,8 @@ public class PerfromanceTestExample {
         LatencyReporter.create(new PerfServiceLatencyListener(50d, 99d))
             .warmupIterations(3)
             .warmupTime(Duration.ofMillis(3))
+            .owner("scalecube")
+            .repo("github-gateway")
             .start();
 
     // simulating a test that reports the diff measurement.
@@ -30,6 +32,8 @@ public class PerfromanceTestExample {
         ThroughputReporter.create(new PerfServiceThroughputListener())
             .warmupIterations(3)
             .warmupTime(Duration.ofMillis(3))
+            .owner("scalecube")
+            .repo("github-gateway")
             .start();
 
     // simulating a test that reports the TPS measurement.
