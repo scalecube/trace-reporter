@@ -16,7 +16,7 @@ public abstract class Reporter implements AutoCloseable {
     super();
   }
 
-  protected abstract <T> T start();
+  public abstract <T> T start();
 
   /**
    * setup warm-up time of the test.
