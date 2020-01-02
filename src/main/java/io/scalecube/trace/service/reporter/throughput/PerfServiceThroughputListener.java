@@ -4,16 +4,15 @@ import io.scalecube.trace.EnviromentVariables;
 import io.scalecube.trace.TraceReporter;
 import io.scalecube.trace.service.reporter.PerfromanceReporter;
 
-public class PerfServiceReportingThroughputListener implements ThroughputListener {
+public class PerfServiceThroughputListener implements ThroughputListener {
 
   private final TraceReporter reporter;
   private final String testName = EnviromentVariables.testName("TEST_NAME");
   private final String commitId = EnviromentVariables.sha("1");
 
   /** Ctor. */
-  public PerfServiceReportingThroughputListener() {
+  public PerfServiceThroughputListener() {
     this.reporter = new TraceReporter();
-    
   }
 
   @Override

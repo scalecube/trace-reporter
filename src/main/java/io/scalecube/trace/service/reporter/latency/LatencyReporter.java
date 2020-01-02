@@ -14,9 +14,8 @@ public class LatencyReporter extends Reporter {
   private final Recorder histogram;
 
   private Histogram accumulatedHistogram;
-  
+
   private final LatencyListener listener;
-  
 
   /**
    * Launch this test reporter.
@@ -29,13 +28,15 @@ public class LatencyReporter extends Reporter {
   }
 
   /** start latency reporter. */
-  public void start() {
+  @SuppressWarnings("unchecked")
+  public LatencyReporter start() {
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
     this.disposable =
         Flux.interval(reportDelay, reportInterval, Schedulers.single())
             .doOnCancel(this::onTerminate)
             .subscribe(i -> this.run(), Throwable::printStackTrace);
+    return this;
   }
 
   private LatencyReporter(LatencyListener listener) {

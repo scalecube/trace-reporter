@@ -11,7 +11,7 @@ public class PerfServiceLatencyListener implements LatencyListener {
   private final String testName = EnviromentVariables.testName("TEST_NAME");
   private final String commitId = EnviromentVariables.sha("1");
   private final double scalingRatio = EnviromentVariables.scalingRatio(1000.0); // microseconds
-  private double[] percentiles;
+  private double[] percentiles = new double[] {50d, 75d, 90d, 99d};
 
   public PerfServiceLatencyListener(double... percentiles) {
     this.reporter = new TraceReporter();

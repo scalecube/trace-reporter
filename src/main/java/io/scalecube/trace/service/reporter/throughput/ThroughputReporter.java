@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 /** Tracker and listener of throughput rates. */
-public class ThroughputReporter extends Reporter  {
+public class ThroughputReporter extends Reporter {
 
   private final ThroughputListener listener;
 
@@ -19,7 +19,6 @@ public class ThroughputReporter extends Reporter  {
   private long lastTotalMessages;
   private long lastTimestamp;
   private long reportIntervalNs;
-  
 
   /**
    * Launch this test reporter.
@@ -42,13 +41,16 @@ public class ThroughputReporter extends Reporter  {
   }
 
   /** Start the reporter collector. */
-  public void start() {
+  @SuppressWarnings("unchecked")
+  public ThroughputReporter start() {
+
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
     this.reportIntervalNs = reportInterval.toNanos();
     this.disposable =
         Flux.interval(reportDelay, reportInterval, Schedulers.single())
             .subscribe(i -> this.run(), Throwable::printStackTrace);
+    return this;
   }
 
   private void run() {
