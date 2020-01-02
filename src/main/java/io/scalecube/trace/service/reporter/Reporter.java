@@ -39,4 +39,26 @@ public abstract class Reporter implements AutoCloseable {
     this.reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     return (T) this;
   }
+
+  /**
+   * setup owner of the repo.
+   *
+   * @param owner of the repo
+   * @return this
+   */
+  public <T extends Reporter> T owner(String owner) {
+    PerfromanceReporter.OWNER = owner;
+    return (T) this;
+  }
+
+  /**
+   * setup repo name.
+   *
+   * @param repo name.
+   * @return this
+   */
+  public <T extends Reporter> T repo(String repo) {
+    PerfromanceReporter.REPO = repo;
+    return (T) this;
+  }
 }
