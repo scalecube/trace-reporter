@@ -24,8 +24,9 @@ public class PerfromanceReporter {
   public static String OWNER = EnviromentVariables.owner("scalecube");
   public static String REPO = EnviromentVariables.repo("github-gateway");
   public static String CID = EnviromentVariables.sha("1");
-  public static String TRACE_REPORT_URL = EnviromentVariables.url("https://scalecube-7778.exchange.om2.com/traces/add");
-  
+  public static String TRACE_REPORT_URL =
+      EnviromentVariables.url("https://scalecube-7777.exchange.om2.com/traces");
+
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -53,10 +54,10 @@ public class PerfromanceReporter {
       String sha,
       Collection<TraceData<Object, Object>> collection)
       throws IOException {
-
+    String uri = String.format("%s/%s/%s/%s", TRACE_REPORT_URL, owner, repo, sha);
     TraceData[] traces = collection.toArray(new TraceData[collection.size()]);
     PerfromanceTestRequest req = new PerfromanceTestRequest(owner, repo, sha, traces);
-    postResults(url, mapper.writeValueAsString(req));
+    postResults(uri, mapper.writeValueAsString(req));
   }
 
   /**
@@ -66,7 +67,7 @@ public class PerfromanceReporter {
    * @throws IOException error if there is exception.
    */
   public static void publish(TraceReporter reporter) throws IOException {
-    publish(TRACE_REPORT_URL,OWNER,REPO, CID, reporter.traces());
+    publish(TRACE_REPORT_URL, OWNER, REPO, CID, reporter.traces());
   }
 
   /**
