@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>trace-reporter</artifactId>
-  <version>0.0.23-SNAPSHOT</version>
+  <version>0.0.24-SNAPSHOT</version>
 
   <name>ScaleCube Trace Reporter</name>
 
