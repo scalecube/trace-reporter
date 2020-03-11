@@ -76,6 +76,7 @@ public class GitClient {
 
   /**
    * pull.
+   *
    * @return this
    */
   public GitClient pull() {
@@ -92,6 +93,7 @@ public class GitClient {
 
   /**
    * create a file.
+   *
    * @param file the file path in the git working directory.
    * @return the file
    * @throws IOException whenever can not create the file
@@ -105,6 +107,7 @@ public class GitClient {
 
   /**
    * get a file for reading.
+   *
    * @param file the file path in the git working directory.
    * @param createIfNotFound create the file in case it does not exist
    * @return an input stream for this file
@@ -126,6 +129,7 @@ public class GitClient {
 
   /**
    * write to a file.
+   *
    * @param file the file path in the git working directory.
    * @return an output stream for this file
    * @throws FileNotFoundException when the file does not exist
@@ -175,6 +179,7 @@ public class GitClient {
 
   /**
    * check out branch / tag / reference.
+   *
    * @param branch the branch name
    * @return this
    */
@@ -202,6 +207,7 @@ public class GitClient {
 
   /**
    * perform hard reset on checked out refs.
+   *
    * @return this
    */
   public GitClient hardReset() {
@@ -219,6 +225,7 @@ public class GitClient {
 
   /**
    * fetch remote into the branch.
+   *
    * @return this
    */
   public GitClient fetchFromOriginToBranch() {

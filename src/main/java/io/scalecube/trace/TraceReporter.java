@@ -12,14 +12,8 @@ public class TraceReporter implements AutoCloseable {
   private final ConcurrentMap<String, TraceData<Object, Object>> traces = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> xadder = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, LongAdder> yadder = new ConcurrentHashMap<>();
-  private final boolean isActive = EnviromentVariables.isActive();
 
   private final Composite disposables = Disposables.composite();
-
-  /** to set to active create environment variable named TRACE_REPORT=true. */
-  public boolean isActive() {
-    return isActive;
-  }
 
   /**
    * get or create a trace line with a given name.

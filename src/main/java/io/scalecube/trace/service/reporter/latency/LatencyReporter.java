@@ -1,6 +1,6 @@
 package io.scalecube.trace.service.reporter.latency;
 
-import io.scalecube.trace.service.reporter.Reporter;
+import io.scalecube.trace.service.reporter.AbstractPerformanceReporter;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.HdrHistogram.Histogram;
@@ -9,7 +9,7 @@ import org.agrona.CloseHelper;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
-public class LatencyReporter extends Reporter {
+public class LatencyReporter extends AbstractPerformanceReporter<LatencyReporter> {
 
   private final Recorder histogram;
 
@@ -28,7 +28,6 @@ public class LatencyReporter extends Reporter {
   }
 
   /** start latency reporter. */
-  @SuppressWarnings("unchecked")
   public LatencyReporter start() {
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
