@@ -25,7 +25,7 @@ public class PerfromanceReporter {
   public static String REPO = EnviromentVariables.repo("github-gateway");
   public static String CID = EnviromentVariables.sha("1");
   public static String TRACE_REPORT_URL =
-      EnviromentVariables.url("https://scalecube-github-gateway-develop.exchange.om2.com/traces");
+      EnviromentVariables.url("https://scalecube-robokit-develop.exchange.om2.com/traces");
 
   private static ObjectMapper initMapper() {
     ObjectMapper mapper = new ObjectMapper();
