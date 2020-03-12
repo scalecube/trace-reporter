@@ -19,7 +19,9 @@ public class TraceData<X, Y> {
 
   String type = "scatter";
 
-  public TraceData() {}
+  public TraceData() {
+
+  }
 
   public TraceData(String name, String group) {
     this.name = name;

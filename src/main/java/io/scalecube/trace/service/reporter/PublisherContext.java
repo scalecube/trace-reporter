@@ -10,6 +10,12 @@ public final class PublisherContext implements Cloneable {
   private String commitId = "1";
   private String traceReportUrl = "https://scalecube-robokit-develop.exchange.om2.com/traces";
 
+  /**
+   * Setter for {@code owner}.
+   *
+   * @param owner owner
+   * @return new {@code PublisherContext} instance
+   */
   public PublisherContext owner(String owner) {
     PublisherContext c = clone();
     c.owner = owner;
@@ -20,6 +26,12 @@ public final class PublisherContext implements Cloneable {
     return owner;
   }
 
+  /**
+   * Setter for {@code repo}.
+   *
+   * @param repo repo
+   * @return new {@code PublisherContext} instance
+   */
   public PublisherContext repo(String repo) {
     PublisherContext c = clone();
     c.repo = repo;
@@ -30,6 +42,12 @@ public final class PublisherContext implements Cloneable {
     return repo;
   }
 
+  /**
+   * Setter for {@code testName}.
+   *
+   * @param testName testName
+   * @return new {@code PublisherContext} instance
+   */
   public PublisherContext testName(String testName) {
     PublisherContext c = clone();
     c.testName = testName;
@@ -40,6 +58,12 @@ public final class PublisherContext implements Cloneable {
     return testName;
   }
 
+  /**
+   * Setter for {@code commitId}.
+   *
+   * @param commitId commitId
+   * @return new {@code PublisherContext} instance
+   */
   public PublisherContext commitId(String commitId) {
     PublisherContext c = clone();
     c.commitId = commitId;
@@ -50,6 +74,12 @@ public final class PublisherContext implements Cloneable {
     return commitId;
   }
 
+  /**
+   * Setter for {@code traceReportUrl}.
+   *
+   * @param traceReportUrl traceReportUrl
+   * @return new {@code PublisherContext} instance
+   */
   public PublisherContext traceReportUrl(String traceReportUrl) {
     PublisherContext c = clone();
     c.traceReportUrl = traceReportUrl;

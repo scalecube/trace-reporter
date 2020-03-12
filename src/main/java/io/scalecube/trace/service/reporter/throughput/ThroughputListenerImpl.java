@@ -8,6 +8,12 @@ import reactor.core.Exceptions;
 public final class ThroughputListenerImpl extends AbstractPerformanceListener
     implements ThroughputListener, Cloneable {
 
+  /**
+   * {@link PublisherContext} settings function.
+   *
+   * @param op operator
+   * @return new {@code ThroughputListenerImpl} instance
+   */
   public ThroughputListenerImpl publisher(UnaryOperator<PublisherContext> op) {
     ThroughputListenerImpl c = clone();
     c.publisherContext = op.apply(c.publisherContext);
