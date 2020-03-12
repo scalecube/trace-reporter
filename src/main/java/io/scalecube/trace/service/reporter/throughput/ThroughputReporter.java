@@ -1,6 +1,6 @@
 package io.scalecube.trace.service.reporter.throughput;
 
-import io.scalecube.trace.service.reporter.Reporter;
+import io.scalecube.trace.service.reporter.AbstractPerformanceReporter;
 import java.time.Duration;
 import java.util.concurrent.atomic.LongAdder;
 import org.agrona.CloseHelper;
@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 /** Tracker and listener of throughput rates. */
-public class ThroughputReporter extends Reporter {
+public class ThroughputReporter extends AbstractPerformanceReporter<ThroughputReporter> {
 
   private final ThroughputListener listener;
 
@@ -41,9 +41,7 @@ public class ThroughputReporter extends Reporter {
   }
 
   /** Start the reporter collector. */
-  @SuppressWarnings("unchecked")
   public ThroughputReporter start() {
-
     reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
     Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
     this.reportIntervalNs = reportInterval.toNanos();
