@@ -10,7 +10,7 @@ class TraceReporterTest {
   private static final String repo = EnviromentVariables.repo("github-gateway");
   private static final String commitId = EnviromentVariables.sha("1");
   private static final String traceReportUrl =
-      EnviromentVariables.url("https://scalecube-robokit-develop.exchange.om2.com/traces");
+      EnviromentVariables.url("https://scalecube-robokit.exchange.om2.com/traces");
 
   @Test
   void testFlow() throws Exception {
