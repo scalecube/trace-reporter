@@ -1,21 +1,26 @@
 package io.scalecube.trace.service.reporter.latency;
 
 import io.scalecube.trace.service.reporter.AbstractPerformanceReporter;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 import org.agrona.CloseHelper;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 public class LatencyReporter extends AbstractPerformanceReporter<LatencyReporter> {
 
   private final Recorder histogram;
+  private final LatencyListener listener;
 
   private Histogram accumulatedHistogram;
+  private Disposable disposable;
 
-  private final LatencyListener listener;
+  private LatencyReporter(LatencyListener listener) {
+    this.listener = listener;
+    this.histogram = new Recorder(TimeUnit.SECONDS.toNanos(10), 3);
+  }
 
   /**
    * Launch this test reporter.
@@ -29,18 +34,11 @@ public class LatencyReporter extends AbstractPerformanceReporter<LatencyReporter
 
   /** start latency reporter. */
   public LatencyReporter start() {
-    reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
     this.disposable =
         Flux.interval(reportDelay, reportInterval, Schedulers.single())
             .doOnCancel(this::onTerminate)
             .subscribe(i -> this.run(), Throwable::printStackTrace);
     return this;
-  }
-
-  private LatencyReporter(LatencyListener listener) {
-    this.listener = listener;
-    this.histogram = new Recorder(TimeUnit.SECONDS.toNanos(10), 3);
   }
 
   private void run() {

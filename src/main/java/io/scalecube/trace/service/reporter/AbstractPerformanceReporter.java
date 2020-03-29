@@ -1,21 +1,22 @@
 package io.scalecube.trace.service.reporter;
 
 import java.time.Duration;
-import reactor.core.Disposable;
 
-public abstract class AbstractPerformanceReporter<T> implements AutoCloseable {
+public abstract class AbstractPerformanceReporter<T extends AbstractPerformanceReporter<?>>
+    implements AutoCloseable {
 
   protected int warmupTime = 1;
   protected int warmupIterations = 1;
   protected boolean warmupFinished = false;
 
   protected Duration reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-  protected Disposable disposable;
+  protected Duration reportInterval =
+      Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
 
   public abstract T start();
 
   /**
-   * setup warm-up time of the test.
+   * Setup warm-up time of the test (recalculates {@code reportDelay}).
    *
    * @param warmupTime in millis.
    * @return ThroughputReporter
@@ -27,9 +28,9 @@ public abstract class AbstractPerformanceReporter<T> implements AutoCloseable {
   }
 
   /**
-   * setup warmupIterations of the test.
+   * Setup warmupIterations of the test (recalculates {@code reportDelay}).
    *
-   * @param warmupIterations in before test starts.
+   * @param warmupIterations number before test starts.
    * @return ThroughputReporter
    */
   public T warmupIterations(int warmupIterations) {
