@@ -35,7 +35,7 @@ public class LatencyReporterTest {
     // simulating a test that reports the diff measurement.
     for (int i = 0; i < 3000; i++) {
       latency.onDiff(new Double((Math.random() * 100)).longValue());
-      Thread.sleep(10);
+      Thread.sleep(1);
     }
 
     // Measure throughput

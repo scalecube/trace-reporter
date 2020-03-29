@@ -1,9 +1,9 @@
 package io.scalecube.trace.service.reporter.throughput;
 
 import io.scalecube.trace.service.reporter.AbstractPerformanceReporter;
-import java.time.Duration;
 import java.util.concurrent.atomic.LongAdder;
 import org.agrona.CloseHelper;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -20,8 +20,19 @@ public class ThroughputReporter extends AbstractPerformanceReporter<ThroughputRe
   private long lastTimestamp;
   private long reportIntervalNs;
 
+  private Disposable disposable;
+
   /**
-   * Launch this test reporter.
+   * Create throughput reporter.
+   *
+   * @param listener throughput listener
+   */
+  private ThroughputReporter(ThroughputListener listener) {
+    this.listener = listener;
+  }
+
+  /**
+   * Create throughput reporter.
    *
    * @param listeners throughput listeners
    * @return a reporter
@@ -30,20 +41,8 @@ public class ThroughputReporter extends AbstractPerformanceReporter<ThroughputRe
     return new ThroughputReporter(new CompositeThroughputListener(listeners));
   }
 
-  /**
-   * Create rate reporter.
-   *
-   * @param listener throughput listener
-   */
-  private ThroughputReporter(ThroughputListener listener) {
-    this.disposable = null;
-    this.listener = listener;
-  }
-
-  /** Start the reporter collector. */
+  /** Start throughput reporter. */
   public ThroughputReporter start() {
-    reportDelay = Duration.ofMillis(warmupTime * warmupIterations);
-    Duration reportInterval = Duration.ofSeconds(Long.getLong("benchmark.report.interval", 1));
     this.reportIntervalNs = reportInterval.toNanos();
     this.disposable =
         Flux.interval(reportDelay, reportInterval, Schedulers.single())
