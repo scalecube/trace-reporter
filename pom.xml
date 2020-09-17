@@ -1,28 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>io.scalecube</groupId>
     <artifactId>scalecube-parent-pom</artifactId>
-    <version>0.0.21</version>
+    <version>0.2.1</version>
   </parent>
 
   <artifactId>trace-reporter</artifactId>
   <version>0.0.26-SNAPSHOT</version>
-
   <name>ScaleCube Trace Reporter</name>
+
+  <repositories>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/scalecube/packages</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/scalecube/${project.artifactId}</url>
+    </repository>
+  </distributionManagement>
 
   <scm>
     <url>https://github.com/scalecube/trace-reporter</url>
-    <connection>scm:git:git@github.com:scalecube/trace-reporter.git</connection>
-    <developerConnection>scm:git:git@github.com:scalecube/trace-reporter.git
+    <connection>scm:git:https://github.com/scalecube/trace-reporter.git</connection>
+    <developerConnection>scm:git:https://github.com/scalecube/trace-reporter.git
     </developerConnection>
     <tag>HEAD</tag>
   </scm>
 
   <properties>
-    <jackson.version>2.9.10.3</jackson.version>
+    <jackson.version>2.11.0</jackson.version>
   </properties>
 
   <dependencies>
@@ -72,6 +92,12 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
       </plugin>
       <plugin>
@@ -103,5 +129,5 @@
       </plugin>
     </plugins>
   </build>
-</project>
 
+</project>

@@ -8,7 +8,7 @@ public final class PublisherContext implements Cloneable {
   private String repo = "github-gateway";
   private String testName = "TEST_NAME";
   private String commitId = "1";
-  private String traceReportUrl = "https://scalecube-robokit-develop.exchange.om2.com/traces";
+  private String traceReportUrl = "https://scalecube-robokit.exchange.om2.com/traces";
 
   /**
    * Setter for {@code owner}.
