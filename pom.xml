@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,13 +12,31 @@
 
   <artifactId>trace-reporter</artifactId>
   <version>0.0.26-SNAPSHOT</version>
-
   <name>ScaleCube Trace Reporter</name>
+
+  <repositories>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/scalecube/packages</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/scalecube/${project.artifactId}</url>
+    </repository>
+  </distributionManagement>
 
   <scm>
     <url>https://github.com/scalecube/trace-reporter</url>
-    <connection>scm:git:git@github.com:scalecube/trace-reporter.git</connection>
-    <developerConnection>scm:git:git@github.com:scalecube/trace-reporter.git
+    <connection>scm:git:https://github.com/scalecube/trace-reporter.git</connection>
+    <developerConnection>scm:git:https://github.com/scalecube/trace-reporter.git
     </developerConnection>
     <tag>HEAD</tag>
   </scm>
@@ -103,5 +123,5 @@
       </plugin>
     </plugins>
   </build>
-</project>
 
+</project>
