@@ -1,15 +1,55 @@
-# trace-reporter
+# scalecube-app-utils
 
-generates beautiful reports:
+# Usage
+``` java
 
-examples
+Logo.builder().tagVersion(packageInfo.version())
+        .port(String.valueOf(seed.cluster().address().port()))
+        .ip(seed.cluster().address().host())
+        .group(packageInfo.groupId())
+        .artifact(packageInfo.artifactId())
+        .javaVersion(packageInfo.java())
+        .osType(packageInfo.os())
+        .pid(packageInfo.pid())
+        .hostname(packageInfo.hostname())
+        .website().draw();
+        
 
+Logo.from(packageInfo)
+        .port(String.valueOf(seed.cluster().address().port()))
+        .ip(seed.cluster().address().host())
+        .draw();
+        
+```
 
-- [Latency (C5.xlarge) - Aeron vs Reactor-Aeron vs Reactor-Netty vs RSocket-Aeron vs RSocket-netty](http://scalecube.io/plotly/app/chart.html?url=https://api.jsonbin.io/b/5ca0ec3faedb757077ff67d8)
-
-![image](https://user-images.githubusercontent.com/1706296/57943345-743ffe80-78dc-11e9-8e42-6ffa9b2936b3.png)
-
-
-- [Throughput (C5.xlarge) - Aeron vs Reactor-Aeron vs Reactor-Netty vs RSocket-Aeron vs RSocket-netty](http://scalecube.io/plotly/app/chart.html?url=https://api.jsonbin.io/b/5ca0ec4024f5074645e7e85e)
-
-![image](https://user-images.githubusercontent.com/1706296/57943396-989bdb00-78dc-11e9-8a2e-5ba3fdd4a785.png)
+# Print-out:
+``` java
+                         .,,,,,,                          
+                       .,,,,,,,,,,,,/                     
+                  .,,,,,,,,,,,,,,,,,,,.                   
+               .,,,,,,,,,,,,,,,,,,,,,,,,,,,.              
+            .,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.           
+         ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,        
+     ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,             ScaleCube Development is Running.
+     *  ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,*               Group: Development
+     ***** /,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,/  ....            Artifact: Development
+     ******** /*,,,,,,,,,,,,,,,,,,,,,,,,,,,,/  .......            Java: 1.8.0_131
+     ***********, /,,,,,,,,,,,,,,,,,,,,,*  ...........            OS: Windows 10
+     ***************. *,,,,,,,,,,,,,*/ ...............            PID: 4312
+     ******************, /*,,,,,,/  ..................            Host Name: my-host-name
+     ********************** /*/  .....................    
+     ************************ ........................            http://scalecube.io
+     ************************ ........................            https://github.com/scalecube
+     ************************ ........................    
+     ************************ ........................    
+     ************************ ........................    
+     ************************ ........................    
+     ************************ ........................    
+     ************************ ........................    
+         ******************** ....................        
+            ***************** .................           
+                ************* .............               
+                   ********** ..........                  
+                       ****** ......                      
+                          *** ...                         
+```
