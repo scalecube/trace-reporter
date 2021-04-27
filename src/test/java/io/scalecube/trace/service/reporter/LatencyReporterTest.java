@@ -6,17 +6,18 @@ import io.scalecube.trace.service.reporter.latency.LatencyReporter;
 import io.scalecube.trace.service.reporter.throughput.ThroughputListenerImpl;
 import io.scalecube.trace.service.reporter.throughput.ThroughputReporter;
 import java.time.Duration;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class LatencyReporterTest {
 
-  private static final String testName = EnviromentVariables.testName("TEST_NAME");
-  private static final String commitId = EnviromentVariables.sha("1");
-  private static final String owner = EnviromentVariables.owner("scalecube");
-  private static final String repo = EnviromentVariables.repo("github-gateway");
-
+  @Disabled
   @Test
   void testPerformance() throws Exception {
+    final String testName = EnviromentVariables.testName("TEST_NAME");
+    final String commitId = EnviromentVariables.sha("1");
+    final String owner = EnviromentVariables.owner("scalecube");
+    final String repo = EnviromentVariables.repo("github-gateway");
 
     // Measure latency
     LatencyReporter latency =

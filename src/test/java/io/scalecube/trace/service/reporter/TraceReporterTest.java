@@ -2,18 +2,20 @@ package io.scalecube.trace.service.reporter;
 
 import io.scalecube.trace.EnviromentVariables;
 import io.scalecube.trace.TraceReporter;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class TraceReporterTest {
 
-  private static final String owner = EnviromentVariables.owner("scalecube");
-  private static final String repo = EnviromentVariables.repo("github-gateway");
-  private static final String commitId = EnviromentVariables.sha("1");
-  private static final String traceReportUrl =
-      EnviromentVariables.url("https://scalecube-robokit.exchange.om2.com/traces");
-
+  @Disabled
   @Test
   void testFlow() throws Exception {
+    final String owner = EnviromentVariables.owner("scalecube");
+    final String repo = EnviromentVariables.repo("github-gateway");
+    final String commitId = EnviromentVariables.sha("1");
+    final String traceReportUrl =
+        EnviromentVariables.url("https://scalecube-robokit.exchange.om2.com/traces");
+
     try (TraceReporter reporter = new TraceReporter()) {
       reporter.addY("latency-1", "latency", 72);
       reporter.addY("latency-1", "latency", 63);
